@@ -21,11 +21,21 @@
   </style>
 </head>
 <body>
+<!-- Mobile top bar -->
+<div class="dash-topbar" id="dash-topbar">
+  <button class="dash-menu-btn" id="dash-menu-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topbar-logo">🌿 Comfort Counsel</div>
+</div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
 <div class="dashboard">
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close" id="sidebar-close" aria-label="Close menu">✕</button>
     <div class="sidebar-logo">🌿 Comfort Counsel</div>
     <nav class="sidebar-nav" id="sidebar-nav"></nav>
-    <div style="margin-top:auto;padding-top:2rem;">
+    <div style="padding-top:1.5rem;">
       <button class="btn btn-outline" style="width:100%;color:white;border-color:rgba(255,255,255,.4)" onclick="logout()">Logout</button>
     </div>
   </aside>
@@ -198,7 +208,7 @@ async function show(section) {
       <div class="table-card" style="margin-bottom:1.5rem">
         <h3 style="margin-bottom:1rem">Add New Admin</h3>
         <div id="admin-alert"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:1rem;align-items:end">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;align-items:end">
           <div class="form-group" style="margin:0"><label>Name</label><input type="text" id="new-admin-name" placeholder="Full name" /></div>
           <div class="form-group" style="margin:0"><label>Email</label><input type="email" id="new-admin-email" placeholder="email@example.com" /></div>
           <div class="form-group" style="margin:0"><label>Password</label><input type="password" id="new-admin-pass" placeholder="Password" /></div>
@@ -425,6 +435,23 @@ async function changePassword() {
     alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
   }
 }
+
+// Mobile sidebar toggle
+(function() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const openBtn = document.getElementById('dash-menu-btn');
+  const closeBtn = document.getElementById('sidebar-close');
+  function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('open'); }
+  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+  openBtn.addEventListener('click', openSidebar);
+  closeBtn.addEventListener('click', closeSidebar);
+  overlay.addEventListener('click', closeSidebar);
+  // Close sidebar on nav link click (mobile)
+  document.getElementById('sidebar-nav').addEventListener('click', e => {
+    if (e.target.tagName === 'A' && window.innerWidth <= 768) closeSidebar();
+  });
+})();
 </script>
 </body>
 </html>

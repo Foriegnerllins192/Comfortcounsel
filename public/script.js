@@ -11,6 +11,15 @@
     if (dashboardLink) dashboardLink.style.display = 'inline-block';
   }
 
+  // Mobile nav toggle
+  const toggle = document.getElementById('nav-toggle');
+  const links = document.getElementById('nav-links');
+  if (toggle && links) {
+    toggle.addEventListener('click', () => links.classList.toggle('open'));
+    // Close on link click
+    links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
+  }
+
   // Handle Paystack callback — verify payment if reference in URL
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('reference') || params.get('trxref');

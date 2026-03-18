@@ -5,13 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Become a Counselor - Comfort Counsel</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="api.js"></script>
+<script src="api.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const t = document.getElementById('nav-toggle');
+    if (t) t.addEventListener('click', () => document.getElementById('nav-links').classList.toggle('open'));
+  });
+</script>
 </head>
 <body>
 
 <nav>
   <div class="nav-logo">🌿 Comfort Counsel</div>
-  <div class="nav-links">
+  <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
     <a href="index.html">Home</a>
     <a href="find-counselor.html">Find Counselor</a>
     <a href="register-counselor.html">Become a Counselor</a>

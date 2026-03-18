@@ -11,7 +11,10 @@
 
 <nav>
   <div class="nav-logo">🌿 Comfort Counsel</div>
-  <div class="nav-links">
+  <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
     <a href="index.html">Home</a>
     <a href="find-counselor.html">Find Counselor</a>
     <a href="register-counselor.html">Become a Counselor</a>
@@ -40,8 +43,8 @@
 </section>
 
 <!-- BOOKING MODAL -->
-<div id="booking-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;">
-  <div style="background:var(--white);border-radius:16px;padding:2rem;max-width:420px;width:90%;text-align:center;">
+<div id="booking-modal" class="modal-overlay">
+  <div class="modal-box">
     <h3 style="color:var(--primary);margin-bottom:.5rem;">Book a Session</h3>
     <p style="color:var(--muted);margin-bottom:1.5rem;">You are about to book a session with <strong id="modal-counselor-name"></strong></p>
     <div style="background:var(--light);border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
@@ -49,7 +52,7 @@
       <div style="color:var(--muted);font-size:.9rem;">One counseling session</div>
     </div>
     <div id="modal-alert"></div>
-    <div style="display:flex;gap:1rem;justify-content:center;">
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" id="confirm-book-btn">Pay with Paystack</button>
     </div>
@@ -105,12 +108,11 @@
     selectedCounselorId = id;
     document.getElementById('modal-counselor-name').textContent = name;
     document.getElementById('modal-alert').innerHTML = '';
-    const modal = document.getElementById('booking-modal');
-    modal.style.display = 'flex';
+    document.getElementById('booking-modal').classList.add('open');
   }
 
   function closeModal() {
-    document.getElementById('booking-modal').style.display = 'none';
+    document.getElementById('booking-modal').classList.remove('open');
   }
 
   document.getElementById('confirm-book-btn').addEventListener('click', async () => {

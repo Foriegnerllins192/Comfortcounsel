@@ -11,7 +11,10 @@
 
 <nav>
   <div class="nav-logo">🌿 Comfort Counsel</div>
-  <div class="nav-links">
+  <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
     <a href="index.html">Home</a>
     <a href="find-counselor.html">Find Counselor</a>
     <a href="register-counselor.html">Become a Counselor</a>
@@ -40,7 +43,6 @@
     </div>
   </div>
 
-  <!-- Register card (toggle) -->
   <div id="register-card" class="form-card" style="display:none;">
     <h2>Create Account</h2>
     <p class="form-sub">Sign up to book counseling sessions</p>
@@ -67,45 +69,66 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Mobile nav toggle
+  const navToggle = document.getElementById('nav-toggle');
+  const navLinks = document.getElementById('nav-links');
+  if (navToggle) navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+
+  // Card toggle
   document.getElementById('show-register').addEventListener('click', e => {
     e.preventDefault();
     document.getElementById('login-card').style.display = 'none';
     document.getElementById('register-card').style.display = 'block';
   });
+
   document.getElementById('show-login').addEventListener('click', e => {
     e.preventDefault();
     document.getElementById('register-card').style.display = 'none';
     document.getElementById('login-card').style.display = 'block';
   });
 
+  // Login
   document.getElementById('login-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
-    btn.disabled = true; btn.textContent = 'Logging in...';
+    const alertEl = document.getElementById('login-alert');
+    btn.disabled = true;
+    btn.textContent = 'Logging in...';
+    alertEl.innerHTML = '';
     try {
       const data = await apiFetch('/api/login', {
         method: 'POST',
-        body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('password').value })
+        body: JSON.stringify({
+          email: document.getElementById('email').value.trim(),
+          password: document.getElementById('password').value
+        })
       });
       localStorage.setItem('cc_token', data.token);
       localStorage.setItem('cc_user', JSON.stringify(data.user));
       window.location.href = data.user.role === 'admin' ? 'admin.html' : 'dashboard.html';
     } catch (err) {
-      document.getElementById('login-alert').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
-      btn.disabled = false; btn.textContent = 'Login';
+      alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      btn.disabled = false;
+      btn.textContent = 'Login';
     }
   });
 
+  // Register
   document.getElementById('register-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
-    btn.disabled = true; btn.textContent = 'Creating account...';
+    const alertEl = document.getElementById('register-alert');
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+    alertEl.innerHTML = '';
     try {
       const data = await apiFetch('/api/register', {
         method: 'POST',
         body: JSON.stringify({
-          name: document.getElementById('reg-name').value,
-          email: document.getElementById('reg-email').value,
+          name: document.getElementById('reg-name').value.trim(),
+          email: document.getElementById('reg-email').value.trim(),
           password: document.getElementById('reg-password').value
         })
       });
@@ -113,10 +136,13 @@
       localStorage.setItem('cc_user', JSON.stringify(data.user));
       window.location.href = 'dashboard.html';
     } catch (err) {
-      document.getElementById('register-alert').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
-      btn.disabled = false; btn.textContent = 'Create Account';
+      alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
     }
   });
+
+});
 </script>
 </body>
 </html>
