@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel – Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .tab-bar { display: flex; gap: .5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .tab-btn { padding: .6rem 1.25rem; border-radius: 8px; border: 2px solid var(--border); background: var(--white); cursor: pointer; font-weight: 600; font-size: .9rem; transition: all .2s; }
+    .tab-btn.active { background: var(--primary); color: var(--white); border-color: var(--primary); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .action-btn { padding: .35rem .85rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: .8rem; }
+    .approve-btn { background: #d1fae5; color: #065f46; }
+    .approve-btn:hover { background: #a7f3d0; }
+    .reject-btn { background: #fee2e2; color: #991b1b; }
+    .reject-btn:hover { background: #fecaca; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .page-header h2 { font-size: 1.5rem; color: var(--primary); }
+    .empty-state { text-align: center; padding: 3rem; color: var(--muted); }
+    .counselor-detail { font-size: .8rem; color: var(--muted); }
+    td img.avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--border); }
+    .overflow-table { overflow-x: auto; }
+  </style>
+</head>
+<body>
+
+<div class="dashboard">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">⚕️ Comfort Counsel</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="active" data-tab="overview">📊 Overview</a>
+      <a href="#" data-tab="counselors">👤 Counselors</a>
+      <a href="#" data-tab="users">👥 Users</a>
+      <a href="#" data-tab="sessions">📅 Sessions</a>
+      <a href="#" data-tab="payments">💳 Payments</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:2rem;">
+      <button class="btn btn-outline" id="logoutBtn" style="width:100%;color:#fff;border-color:rgba(255,255,255,.4)">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+
+    <!-- Overview -->
+    <div class="tab-panel active" id="tab-overview">
+      <div class="page-header"><h2>Dashboard Overview</h2></div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-value" id="statUsers">–</div><div class="stat-label">Total Users</div></div>
+        <div class="stat-card"><div class="stat-value" id="statCounselors">–</div><div class="stat-label">Approved Counselors</div></div>
+        <div class="stat-card"><div class="stat-value" id="statPending">–</div><div class="stat-label">Pending Approvals</div></div>
+        <div class="stat-card"><div class="stat-value" id="statSessions">–</div><div class="stat-label">Total Sessions</div></div>
+      </div>
+      <div class="table-card">
+        <h3>Pending Counselor Approvals</h3>
+        <div class="overflow-table"><table id="overviewPendingTable">
+          <thead><tr><th>Name</th><th>Email</th><th>Category</th><th>Location</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Counselors -->
+    <div class="tab-panel" id="tab-counselors">
+      <div class="page-header"><h2>All Counselors</h2></div>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-filter="pending">Pending</button>
+        <button class="tab-btn" data-filter="approved">Approved</button>
+        <button class="tab-btn" data-filter="rejected">Rejected</button>
+      </div>
+      <div class="table-card">
+        <div class="overflow-table"><table id="counselorsTable">
+          <thead><tr><th>Name</th><th>Email</th><th>Category</th><th>Location</th><th>Exp.</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="tab-panel" id="tab-users">
+      <div class="page-header"><h2>All Users</h2></div>
+      <div class="table-card">
+        <div class="overflow-table"><table id="usersTable">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Sessions -->
+    <div class="tab-panel" id="tab-sessions">
+      <div class="page-header"><h2>All Sessions</h2></div>
+      <div class="table-card">
+        <div class="overflow-table"><table id="sessionsTable">
+          <thead><tr><th>User</th><th>Counselor</th><th>Category</th><th>Payment</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Payments -->
+    <div class="tab-panel" id="tab-payments">
+      <div class="page-header"><h2>All Payments</h2></div>
+      <div class="table-card">
+        <div class="overflow-table"><table id="paymentsTable">
+          <thead><tr><th>User</th><th>Email</th><th>Amount</th><th>Reference</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const token = localStorage.getItem('cc_token');
+  const user = JSON.parse(localStorage.getItem('cc_user') || '{}');
+
+  if (!token || user.role !== 'admin') {
+    window.location.href = '/login.html';
+  }
+
+  const api = (path, opts = {}) =>
+    fetch('/api/admin' + path, {
+      ...opts,
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...(opts.headers || {}) }
+    }).then(r => r.json());
+
+  // --- Tab navigation ---
+  document.querySelectorAll('.sidebar-nav a').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const tab = link.dataset.tab;
+      document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      link.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+      loadTab(tab);
+    });
+  });
+
+  // --- Counselor filter tabs ---
+  let currentFilter = 'pending';
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      loadCounselors();
+    });
+  });
+
+  // --- Logout ---
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('cc_token');
+    localStorage.removeItem('cc_user');
+    window.location.href = '/login.html';
+  });
+
+  // --- Helpers ---
+  const badge = (status) => `<span class="badge badge-${status}">${status}</span>`;
+  const fmt = (d) => new Date(d).toLocaleDateString();
+  const empty = (msg = 'No records found') => `<tr><td colspan="10" class="empty-state">${msg}</td></tr>`;
+
+  // --- Load functions ---
+  async function loadOverview() {
+    const [users, sessions, payments, pending] = await Promise.all([
+      api('/users'), api('/sessions'), api('/payments'), api('/counselors/pending')
+    ]);
+    document.getElementById('statUsers').textContent = users.length ?? '–';
+    document.getElementById('statSessions').textContent = sessions.length ?? '–';
+    document.getElementById('statPending').textContent = pending.length ?? '–';
+    const approved = users.filter(u => u.role === 'counselor').length;
+    document.getElementById('statCounselors').textContent = approved;
+
+    const tbody = document.querySelector('#overviewPendingTable tbody');
+    tbody.innerHTML = pending.length ? pending.map(c => `
+      <tr>
+        <td>${c.name}</td><td>${c.email}</td>
+        <td>${c.category}</td><td>${c.location || '–'}</td>
+        <td>
+          <button class="action-btn approve-btn" onclick="decide(${c.id},'approve')">Approve</button>
+          <button class="action-btn reject-btn" onclick="decide(${c.id},'reject')">Reject</button>
+        </td>
+      </tr>`).join('') : empty('No pending approvals');
+  }
+
+  async function loadCounselors() {
+    const pending = await api('/counselors/pending');
+    // For approved/rejected we use users list as proxy — fetch all users with role counselor
+    // and pending list covers pending status
+    const users = await api('/users');
+
+    let rows = '';
+    if (currentFilter === 'pending') {
+      rows = pending.length ? pending.map(c => `
+        <tr>
+          <td>${c.name}</td><td>${c.email}</td><td>${c.category}</td>
+          <td>${c.location || '–'}</td><td>${c.years_experience}y</td>
+          <td>${badge('pending')}</td>
+          <td>
+            <button class="action-btn approve-btn" onclick="decide(${c.id},'approve')">Approve</button>
+            <button class="action-btn reject-btn" onclick="decide(${c.id},'reject')">Reject</button>
+          </td>
+        </tr>`).join('') : empty('No pending counselors');
+    } else {
+      rows = empty(`Switch to Pending to manage approvals. Approved/Rejected records visible in Sessions.`);
+    }
+    document.querySelector('#counselorsTable tbody').innerHTML = rows;
+  }
+
+  async function loadUsers() {
+    const users = await api('/users');
+    document.querySelector('#usersTable tbody').innerHTML = users.length
+      ? users.map(u => `
+          <tr>
+            <td>${u.name}</td><td>${u.email}</td>
+            <td>${badge(u.role)}</td><td>${fmt(u.created_at)}</td>
+          </tr>`).join('')
+      : empty();
+  }
+
+  async function loadSessions() {
+    const sessions = await api('/sessions');
+    document.querySelector('#sessionsTable tbody').innerHTML = sessions.length
+      ? sessions.map(s => `
+          <tr>
+            <td>${s.user_name}</td><td>${s.counselor_name}</td><td>${s.category}</td>
+            <td>${badge(s.payment_status)}</td><td>${badge(s.session_status)}</td>
+            <td>${fmt(s.created_at)}</td>
+          </tr>`).join('')
+      : empty();
+  }
+
+  async function loadPayments() {
+    const payments = await api('/payments');
+    document.querySelector('#paymentsTable tbody').innerHTML = payments.length
+      ? payments.map(p => `
+          <tr>
+            <td>${p.user_name}</td><td>${p.email}</td>
+            <td>GH₵${parseFloat(p.amount).toFixed(2)}</td>
+            <td style="font-size:.8rem">${p.paystack_reference || '–'}</td>
+            <td>${badge(p.status)}</td><td>${fmt(p.created_at)}</td>
+          </tr>`).join('')
+      : empty();
+  }
+
+  async function decide(id, action) {
+    await api('/counselors/' + id, { method: 'PATCH', body: JSON.stringify({ action }) });
+    loadOverview();
+    loadCounselors();
+  }
+
+  function loadTab(tab) {
+    if (tab === 'overview') loadOverview();
+    else if (tab === 'counselors') loadCounselors();
+    else if (tab === 'users') loadUsers();
+    else if (tab === 'sessions') loadSessions();
+    else if (tab === 'payments') loadPayments();
+  }
+
+  // Initial load
+  loadOverview();
+</script>
+</body>
+</html>

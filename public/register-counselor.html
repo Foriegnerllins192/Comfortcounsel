@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Become a Counselor - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">🌿 Comfort Counsel</div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="find-counselor.html">Find Counselor</a>
+    <a href="register-counselor.html">Become a Counselor</a>
+    <a href="login.html">Login</a>
+  </div>
+</nav>
+
+<div class="form-page" style="background:var(--light);padding:3rem 1rem;">
+  <div class="form-card" style="max-width:600px;">
+    <h2>Become a Counselor</h2>
+    <p class="form-sub">Join our platform and help Ghana's youth. Your application will be reviewed within 24–48 hours.</p>
+
+    <div id="alert"></div>
+
+    <form id="counselor-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Full Name *</label>
+          <input type="text" id="name" placeholder="Your full name" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address *</label>
+          <input type="email" id="email" placeholder="you@example.com" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="password">Password *</label>
+          <input type="password" id="password" placeholder="Min. 6 characters" required minlength="6" />
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number *</label>
+          <input type="tel" id="phone" placeholder="0XX XXX XXXX" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="location">Location</label>
+          <input type="text" id="location" placeholder="City, Region" />
+        </div>
+        <div class="form-group">
+          <label for="years">Years of Experience</label>
+          <input type="number" id="years" placeholder="e.g. 3" min="0" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="category">Counseling Category *</label>
+        <select id="category" required>
+          <option value="">Select a category</option>
+          <option>Youth Life Counseling</option>
+          <option>Relationship Counseling</option>
+          <option>Career Counseling</option>
+          <option>Mental Wellness Support</option>
+          <option>Family Counseling</option>
+          <option>Business & Startup Advice</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="bio">Short Bio *</label>
+        <textarea id="bio" placeholder="Tell clients about your background, approach, and what you specialize in..." required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%">Submit Application</button>
+    </form>
+
+    <div class="form-footer">
+      Already registered? <a href="login.html">Login here</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('counselor-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Submitting...';
+    const alertEl = document.getElementById('alert');
+
+    const body = {
+      name: document.getElementById('name').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value,
+      phone_number: document.getElementById('phone').value.trim(),
+      location: document.getElementById('location').value.trim(),
+      years_experience: parseInt(document.getElementById('years').value) || 0,
+      category: document.getElementById('category').value,
+      bio: document.getElementById('bio').value.trim()
+    };
+
+    try {
+      const res = await fetch('/api/counselors/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alertEl.innerHTML = `<div class="alert alert-success">Application submitted! We'll review it within 24–48 hours and notify you by email.</div>`;
+      e.target.reset();
+    } catch (err) {
+      alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Submit Application';
+    }
+  });
+</script>
+</body>
+</html>

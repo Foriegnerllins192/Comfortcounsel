@@ -1,0 +1,28 @@
+// Shared nav auth state
+(function () {
+  const token = localStorage.getItem('cc_token');
+  const user = JSON.parse(localStorage.getItem('cc_user') || 'null');
+
+  const loginLink = document.getElementById('nav-login');
+  const dashboardLink = document.getElementById('nav-dashboard');
+
+  if (token && user) {
+    if (loginLink) loginLink.style.display = 'none';
+    if (dashboardLink) dashboardLink.style.display = 'inline-block';
+  }
+
+  // Handle Paystack callback — verify payment if reference in URL
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('reference') || params.get('trxref');
+  if (ref && token) {
+    fetch(`/api/verify/${ref}`, { headers: { Authorization: 'Bearer ' + token } })
+      .then(r => r.json())
+      .then(data => {
+        if (data.message) {
+          alert('Payment successful! Your session is confirmed.');
+          window.location.href = 'dashboard.html';
+        }
+      })
+      .catch(() => {});
+  }
+})();
