@@ -26,8 +26,11 @@ CREATE TABLE IF NOT EXISTS sessions (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   counselor_id INTEGER REFERENCES counselors(id) ON DELETE SET NULL,
+  caller_phone VARCHAR(20),
+  counselor_phone VARCHAR(20),
   payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed')),
-  session_status VARCHAR(20) DEFAULT 'scheduled' CHECK (session_status IN ('scheduled', 'completed', 'cancelled')),
+  session_status VARCHAR(20) DEFAULT 'scheduled' CHECK (session_status IN ('scheduled', 'active', 'completed', 'cancelled')),
+  expires_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -38,5 +41,31 @@ CREATE TABLE IF NOT EXISTS payments (
   amount NUMERIC(10,2) NOT NULL,
   paystack_reference VARCHAR(255) UNIQUE,
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'failed')),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS wallets (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+  balance NUMERIC(10,2) DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  amount NUMERIC(10,2) NOT NULL,
+  type VARCHAR(20) CHECK (type IN ('credit', 'debit')),
+  description TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS counselor_payouts (
+  id SERIAL PRIMARY KEY,
+  counselor_id INTEGER REFERENCES counselors(id) ON DELETE CASCADE,
+  amount NUMERIC(10,2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'paid')),
+  note TEXT,
+  paid_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW()
 );

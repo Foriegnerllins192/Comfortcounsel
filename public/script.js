@@ -16,9 +16,12 @@
   const ref = params.get('reference') || params.get('trxref');
   if (ref && token) {
     fetch(`/api/verify/${ref}`, { headers: { Authorization: 'Bearer ' + token } })
-      .then(r => r.json())
+      .then(async r => {
+        if (!r.ok || !r.headers.get('content-type')?.includes('application/json')) return;
+        return r.json();
+      })
       .then(data => {
-        if (data.message) {
+        if (data?.message) {
           alert('Payment successful! Your session is confirmed.');
           window.location.href = 'dashboard.html';
         }

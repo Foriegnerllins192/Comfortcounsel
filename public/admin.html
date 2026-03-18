@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel – Comfort Counsel</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="api.js"></script>
   <style>
     .tab-bar { display: flex; gap: .5rem; margin-bottom: 2rem; flex-wrap: wrap; }
     .tab-btn { padding: .6rem 1.25rem; border-radius: 8px; border: 2px solid var(--border); background: var(--white); cursor: pointer; font-weight: 600; font-size: .9rem; transition: all .2s; }
@@ -22,6 +23,9 @@
     .counselor-detail { font-size: .8rem; color: var(--muted); }
     td img.avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--border); }
     .overflow-table { overflow-x: auto; }
+    .alert { padding: .75rem 1rem; border-radius: 8px; font-size: .9rem; }
+    .alert-error { background: #fff5f5; color: #e53e3e; border: 1px solid #fed7d7; }
+    .alert-success { background: #f0fff4; color: #38a169; border: 1px solid #c6f6d5; }
   </style>
 </head>
 <body>
@@ -32,6 +36,7 @@
     <div class="sidebar-logo">⚕️ Comfort Counsel</div>
     <nav class="sidebar-nav">
       <a href="#" class="active" data-tab="overview">📊 Overview</a>
+      <a href="#" data-tab="payouts">💸 Payouts</a>
       <a href="#" data-tab="counselors">👤 Counselors</a>
       <a href="#" data-tab="users">👥 Users</a>
       <a href="#" data-tab="sessions">📅 Sessions</a>
@@ -58,6 +63,26 @@
         <h3>Pending Counselor Approvals</h3>
         <div class="overflow-table"><table id="overviewPendingTable">
           <thead><tr><th>Name</th><th>Email</th><th>Category</th><th>Location</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Payouts -->
+    <div class="tab-panel" id="tab-payouts">
+      <div class="page-header"><h2>Counselor Payouts</h2></div>
+      <div id="payout-alert"></div>
+      <div class="table-card" style="margin-bottom:1.5rem">
+        <h3 style="margin-bottom:1rem">⏳ Pending Payouts</h3>
+        <div class="overflow-table"><table id="pendingPayoutsTable">
+          <thead><tr><th>Counselor</th><th>Email</th><th>Phone</th><th>Amount</th><th>Session Date</th><th>Action</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+      <div class="table-card">
+        <h3 style="margin-bottom:1rem">✅ Paid History</h3>
+        <div class="overflow-table"><table id="paidPayoutsTable">
+          <thead><tr><th>Counselor</th><th>Email</th><th>Amount</th><th>Note</th><th>Paid At</th></tr></thead>
           <tbody></tbody>
         </table></div>
       </div>
@@ -123,11 +148,7 @@
     window.location.href = '/login.html';
   }
 
-  const api = (path, opts = {}) =>
-    fetch('/api/admin' + path, {
-      ...opts,
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...(opts.headers || {}) }
-    }).then(r => r.json());
+  const api = (path, opts = {}) => apiFetch('/api/admin' + path, opts);
 
   // --- Tab navigation ---
   document.querySelectorAll('.sidebar-nav a').forEach(link => {
@@ -167,14 +188,38 @@
 
   // --- Load functions ---
   async function loadOverview() {
-    const [users, sessions, payments, pending] = await Promise.all([
-      api('/users'), api('/sessions'), api('/payments'), api('/counselors/pending')
+    const [users, sessions, payments, pending, payouts] = await Promise.all([
+      api('/users'), api('/sessions'), api('/payments'), api('/counselors/pending'), api('/payouts')
     ]);
     document.getElementById('statUsers').textContent = users.length ?? '–';
     document.getElementById('statSessions').textContent = sessions.length ?? '–';
     document.getElementById('statPending').textContent = pending.length ?? '–';
     const approved = users.filter(u => u.role === 'counselor').length;
     document.getElementById('statCounselors').textContent = approved;
+
+    // Paycut summary
+    const payoutSummaryHtml = `
+      <div class="table-card" style="margin-bottom:1.5rem">
+        <h3 style="margin-bottom:1rem">💰 Revenue Breakdown</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem">
+          <div class="stat-card"><div class="stat-value">GH₵${payouts.total_collected.toFixed(2)}</div><div class="stat-label">Total Collected</div></div>
+          <div class="stat-card"><div class="stat-value" style="color:var(--success)">GH₵${payouts.platform_cut.toFixed(2)}</div><div class="stat-label">Platform Cut (GH₵15/session)</div></div>
+          <div class="stat-card"><div class="stat-value" style="color:var(--accent)">GH₵${payouts.counselor_share.toFixed(2)}</div><div class="stat-label">Counselor Share (GH₵35/session)</div></div>
+          <div class="stat-card"><div class="stat-value" style="color:var(--danger)">${payouts.pending_payouts.length}</div><div class="stat-label">Pending Payouts</div></div>
+        </div>
+        <h4 style="margin-bottom:.75rem">Pending Counselor Payouts</h4>
+        <table>
+          <thead><tr><th>Counselor</th><th>Email</th><th>Phone</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody>${payouts.pending_payouts.length ? payouts.pending_payouts.map(p => `
+            <tr>
+              <td>${p.counselor_name}</td><td>${p.counselor_email}</td><td>${p.phone_number||'–'}</td>
+              <td><strong>GH₵${parseFloat(p.amount).toFixed(2)}</strong></td>
+              <td>${new Date(p.created_at).toLocaleDateString()}</td>
+              <td><button class="action-btn approve-btn" onclick="markPaid(${p.id})">Mark Paid</button></td>
+            </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted)">No pending payouts</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
 
     const tbody = document.querySelector('#overviewPendingTable tbody');
     tbody.innerHTML = pending.length ? pending.map(c => `
@@ -186,9 +231,50 @@
           <button class="action-btn reject-btn" onclick="decide(${c.id},'reject')">Reject</button>
         </td>
       </tr>`).join('') : empty('No pending approvals');
+
+    // Inject payout summary before the pending table
+    document.getElementById('tab-overview').querySelector('.page-header').insertAdjacentHTML('afterend', payoutSummaryHtml);
   }
 
-  async function loadCounselors() {
+  async function loadPayouts() {
+    const data = await api('/payouts');
+    const fmt = d => new Date(d).toLocaleDateString();
+
+    document.querySelector('#pendingPayoutsTable tbody').innerHTML = data.pending_payouts.length
+      ? data.pending_payouts.map(p => `
+          <tr>
+            <td>${p.counselor_name}</td><td>${p.counselor_email}</td>
+            <td>${p.phone_number||'–'}</td>
+            <td><strong>GH₵${parseFloat(p.amount).toFixed(2)}</strong></td>
+            <td>${fmt(p.created_at)}</td>
+            <td><button class="action-btn approve-btn" onclick="markPaid(${p.id})">Mark Paid</button></td>
+          </tr>`).join('')
+      : empty('No pending payouts');
+
+    document.querySelector('#paidPayoutsTable tbody').innerHTML = data.paid_history.length
+      ? data.paid_history.map(p => `
+          <tr>
+            <td>${p.counselor_name}</td><td>${p.counselor_email}</td>
+            <td>GH₵${parseFloat(p.amount).toFixed(2)}</td>
+            <td>${p.note||'–'}</td>
+            <td>${fmt(p.paid_at)}</td>
+          </tr>`).join('')
+      : empty('No paid payouts yet');
+  }
+
+  async function markPaid(id) {
+    const note = prompt('Add a payment note (e.g. MoMo reference):', 'Paid via MoMo');
+    if (note === null) return; // cancelled
+    try {
+      await api(`/payouts/${id}/pay`, { method: 'PATCH', body: JSON.stringify({ note }) });
+      document.getElementById('payout-alert').innerHTML = `<div class="alert alert-success" style="margin-bottom:1rem">Payout marked as paid.</div>`;
+      loadPayouts();
+      // Refresh overview payout summary too
+      document.getElementById('tab-overview').querySelectorAll('.table-card').forEach((el, i) => { if (i === 0) el.remove(); });
+    } catch (err) {
+      document.getElementById('payout-alert').innerHTML = `<div class="alert alert-error" style="margin-bottom:1rem">${err.message}</div>`;
+    }
+  }
     const pending = await api('/counselors/pending');
     // For approved/rejected we use users list as proxy — fetch all users with role counselor
     // and pending list covers pending status
@@ -256,6 +342,7 @@
 
   function loadTab(tab) {
     if (tab === 'overview') loadOverview();
+    else if (tab === 'payouts') loadPayouts();
     else if (tab === 'counselors') loadCounselors();
     else if (tab === 'users') loadUsers();
     else if (tab === 'sessions') loadSessions();

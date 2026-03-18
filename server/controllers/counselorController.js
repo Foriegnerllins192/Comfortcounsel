@@ -96,15 +96,24 @@ const getDashboard = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-  const { bio, location, years_experience } = req.body;
+  const { bio, location, years_experience, phone_number, name } = req.body;
+  const client = await pool.connect();
   try {
-    await pool.query(
-      'UPDATE counselors SET bio=$1, location=$2, years_experience=$3 WHERE user_id=$4',
-      [bio, location, years_experience, req.user.id]
+    await client.query('BEGIN');
+    await client.query(
+      'UPDATE counselors SET bio=$1, location=$2, years_experience=$3, phone_number=$4 WHERE user_id=$5',
+      [bio, location, years_experience, phone_number, req.user.id]
     );
+    if (name) {
+      await client.query('UPDATE users SET name=$1 WHERE id=$2', [name, req.user.id]);
+    }
+    await client.query('COMMIT');
     res.json({ message: 'Profile updated' });
   } catch (err) {
+    await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 };
 

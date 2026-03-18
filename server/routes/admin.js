@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const { authenticate, requireRole } = require('../middleware/auth');
 const {
-  getPendingCounselors, approveCounselor, getUsers, getSessions, getPayments
+  getPendingCounselors, approveCounselor, getUsers, getSessions, getPayments,
+  getAdmins, addAdmin, removeAdmin, getAdminWallet, getPayoutOverview, payCounselor
 } = require('../controllers/adminController');
 
 router.use(authenticate, requireRole('admin'));
@@ -11,5 +12,11 @@ router.patch('/counselors/:id', approveCounselor);
 router.get('/users', getUsers);
 router.get('/sessions', getSessions);
 router.get('/payments', getPayments);
+router.get('/admins', getAdmins);
+router.post('/admins', addAdmin);
+router.delete('/admins/:id', removeAdmin);
+router.get('/wallet', getAdminWallet);
+router.get('/payouts', getPayoutOverview);
+router.patch('/payouts/:id/pay', payCounselor);
 
 module.exports = router;

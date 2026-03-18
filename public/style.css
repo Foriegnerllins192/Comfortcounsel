@@ -135,8 +135,8 @@ section { padding: 4rem 2rem; }
 .sidebar { width: 260px; background: var(--primary-dark); color: var(--white); padding: 2rem 1.5rem; flex-shrink: 0; }
 .sidebar-logo { font-size: 1.3rem; font-weight: 700; margin-bottom: 2rem; }
 .sidebar-nav { display: flex; flex-direction: column; gap: .5rem; }
-.sidebar-nav a { color: rgba(255,255,255,.8); padding: .75rem 1rem; border-radius: 8px; font-weight: 500; transition: all .2s; }
-.sidebar-nav a:hover, .sidebar-nav a.active { background: rgba(255,255,255,.15); color: var(--white); }
+.sidebar-nav a { color: #000000; padding: .75rem 1rem; border-radius: 8px; font-weight: 600; transition: all .2s; display: block; }
+.sidebar-nav a:hover, .sidebar-nav a.active { background: rgba(255,255,255,.2); color: #000000; }
 .main-content { flex: 1; padding: 2rem; background: var(--light); }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
 .stat-card { background: var(--white); border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
