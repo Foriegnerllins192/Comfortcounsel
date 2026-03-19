@@ -15,6 +15,11 @@
     .reject-btn { background: #fee2e2; color: #991b1b; }
     .reject-btn:hover { background: #fecaca; }
     .empty-state { text-align: center; padding: 2rem; color: var(--muted); }
+    .wallet-card { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
+    .wallet-card .balance { font-size: 2.5rem; font-weight: 700; margin: .5rem 0; }
+    .wallet-card .label { opacity: .8; font-size: .9rem; }
+    .txn-type-credit { color: #6ee7b7; font-weight: 600; }
+    .txn-type-debit { color: #fca5a5; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -38,6 +43,8 @@
       <a href="#" data-tab="users">👥 Users</a>
       <a href="#" data-tab="sessions">📅 Sessions</a>
       <a href="#" data-tab="payments">💳 Payments</a>
+      <a href="#" data-tab="wallet">💰 My Wallet</a>
+      <a href="#" data-tab="admins">🔐 Manage Admins</a>
     </nav>
     <div style="padding-top:1.5rem;">
       <button class="btn btn-outline" id="logoutBtn" style="width:100%;color:#fff;border-color:rgba(255,255,255,.4)">Logout</button>
@@ -53,6 +60,10 @@
         <div class="stat-card"><div class="stat-value" id="statCounselors">–</div><div class="stat-label">Counselors</div></div>
         <div class="stat-card"><div class="stat-value" id="statPending">–</div><div class="stat-label">Pending Approvals</div></div>
         <div class="stat-card"><div class="stat-value" id="statSessions">–</div><div class="stat-label">Total Sessions</div></div>
+        <div class="stat-card"><div class="stat-value" id="statTotalCollected" style="color:var(--accent)">–</div><div class="stat-label">Total Collected</div></div>
+        <div class="stat-card"><div class="stat-value" id="statPlatformCut" style="color:var(--success)">–</div><div class="stat-label">Platform Revenue</div></div>
+        <div class="stat-card"><div class="stat-value" id="statCounselorShare" style="color:#6366f1">–</div><div class="stat-label">Paid to Counselors</div></div>
+        <div class="stat-card"><div class="stat-value" id="statPendingPayouts" style="color:var(--danger)">–</div><div class="stat-label">Pending Payouts</div></div>
       </div>
       <div id="revenue-summary"></div>
       <div class="table-card">
@@ -123,6 +134,43 @@
       <div class="table-card">
         <div class="overflow-table"><table id="paymentsTable">
           <thead><tr><th>User</th><th>Email</th><th>Amount</th><th>Reference</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-wallet">
+      <div class="page-header"><h2>Admin Wallet</h2></div>
+      <div class="wallet-card">
+        <div class="label">Platform Earnings Balance</div>
+        <div class="balance" id="walletBalance">–</div>
+        <div class="label">GH₵15 credited per completed session</div>
+      </div>
+      <div class="table-card">
+        <h3 style="margin-bottom:1rem">Transaction History</h3>
+        <div class="overflow-table"><table id="walletTxnTable">
+          <thead><tr><th>Description</th><th>Amount</th><th>Type</th><th>Date</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-admins">
+      <div class="page-header"><h2>Manage Admins</h2></div>
+      <div class="table-card" style="margin-bottom:1.5rem">
+        <h3 style="margin-bottom:1rem">Add New Admin</h3>
+        <div id="admin-form-alert"></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;align-items:end">
+          <div class="form-group" style="margin:0"><label>Name</label><input type="text" id="new-admin-name" placeholder="Full name" /></div>
+          <div class="form-group" style="margin:0"><label>Email</label><input type="email" id="new-admin-email" placeholder="email@example.com" /></div>
+          <div class="form-group" style="margin:0"><label>Password</label><input type="password" id="new-admin-pass" placeholder="Password" /></div>
+          <button class="btn btn-primary" id="addAdminBtn">Add Admin</button>
+        </div>
+      </div>
+      <div class="table-card">
+        <h3 style="margin-bottom:1rem">Current Admins</h3>
+        <div class="overflow-table"><table id="adminsTable">
+          <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Action</th></tr></thead>
           <tbody></tbody>
         </table></div>
       </div>
@@ -201,27 +249,33 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('statPending').textContent = pending.length;
       document.getElementById('statCounselors').textContent = users.filter(function(u) { return u.role === 'counselor'; }).length;
 
+      document.getElementById('statTotalCollected').textContent = 'GH₵' + payouts.total_collected.toFixed(2);
+      document.getElementById('statPlatformCut').textContent = 'GH₵' + payouts.platform_cut.toFixed(2);
+      document.getElementById('statCounselorShare').textContent = 'GH₵' + payouts.counselor_share.toFixed(2);
+      document.getElementById('statPendingPayouts').textContent = payouts.pending_payouts.length;
+
+      var paidSessions = payments.filter(function(p) { return p.status === 'success'; }).length;
       document.getElementById('revenue-summary').innerHTML =
         '<div class="table-card" style="margin-bottom:1.5rem">' +
           '<h3 style="margin-bottom:1rem">💰 Revenue Breakdown</h3>' +
-          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem">' +
-            '<div class="stat-card"><div class="stat-value">GH₵' + payouts.total_collected.toFixed(2) + '</div><div class="stat-label">Total Collected</div></div>' +
-            '<div class="stat-card"><div class="stat-value" style="color:var(--success)">GH₵' + payouts.platform_cut.toFixed(2) + '</div><div class="stat-label">Platform Cut (GH₵15)</div></div>' +
-            '<div class="stat-card"><div class="stat-value" style="color:var(--accent)">GH₵' + payouts.counselor_share.toFixed(2) + '</div><div class="stat-label">Counselor Share (GH₵35)</div></div>' +
-            '<div class="stat-card"><div class="stat-value" style="color:var(--danger)">' + payouts.pending_payouts.length + '</div><div class="stat-label">Pending Payouts</div></div>' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem">' +
+            '<div class="stat-card"><div class="stat-value" style="color:var(--accent)">GH₵' + payouts.total_collected.toFixed(2) + '</div><div class="stat-label">Total Collected</div></div>' +
+            '<div class="stat-card"><div class="stat-value" style="color:var(--success)">GH₵' + payouts.platform_cut.toFixed(2) + '</div><div class="stat-label">Platform Cut (GH₵15/session)</div></div>' +
+            '<div class="stat-card"><div class="stat-value" style="color:#6366f1">GH₵' + payouts.counselor_share.toFixed(2) + '</div><div class="stat-label">Counselor Share (GH₵35/session)</div></div>' +
+            '<div class="stat-card"><div class="stat-value">' + paidSessions + '</div><div class="stat-label">Paid Sessions</div></div>' +
           '</div>' +
-          '<h4 style="margin-bottom:.75rem">Pending Counselor Payouts</h4>' +
-          '<div class="overflow-table"><table>' +
-            '<thead><tr><th>Counselor</th><th>Email</th><th>Phone</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead>' +
-            '<tbody>' + (payouts.pending_payouts.length
-              ? payouts.pending_payouts.map(function(p) {
+          (payouts.pending_payouts.length
+            ? '<h4 style="margin-bottom:.75rem">⏳ Pending Counselor Payouts</h4>' +
+              '<div class="overflow-table"><table>' +
+                '<thead><tr><th>Counselor</th><th>Email</th><th>Phone</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead>' +
+                '<tbody>' + payouts.pending_payouts.map(function(p) {
                   return '<tr><td>' + p.counselor_name + '</td><td>' + p.counselor_email + '</td><td>' + (p.phone_number||'–') + '</td>' +
                     '<td><strong>GH₵' + parseFloat(p.amount).toFixed(2) + '</strong></td>' +
                     '<td>' + fmt(p.created_at) + '</td>' +
                     '<td><button class="action-btn approve-btn" onclick="markPaid(' + p.id + ')">Mark Paid</button></td></tr>';
-                }).join('')
-              : '<tr><td colspan="6" style="text-align:center;color:var(--muted)">No pending payouts</td></tr>') +
-            '</tbody></table></div>' +
+                }).join('') +
+                '</tbody></table></div>'
+            : '<p style="color:var(--muted);font-size:.9rem">No pending payouts.</p>') +
         '</div>';
 
       document.querySelector('#overviewPendingTable tbody').innerHTML = pending.length
@@ -340,6 +394,64 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (err) { alert(err.message); }
   };
 
+  async function loadWallet() {
+    try {
+      const data = await api('/wallet');
+      document.getElementById('walletBalance').textContent = 'GH₵' + parseFloat(data.balance).toFixed(2);
+      document.querySelector('#walletTxnTable tbody').innerHTML = data.transactions.length
+        ? data.transactions.map(function(t) {
+            return '<tr><td>' + t.description + '</td>' +
+              '<td>GH₵' + parseFloat(t.amount).toFixed(2) + '</td>' +
+              '<td class="txn-type-' + t.type + '">' + t.type + '</td>' +
+              '<td>' + fmt(t.created_at) + '</td></tr>';
+          }).join('')
+        : empty('No transactions yet');
+    } catch (err) { console.error(err.message); }
+  }
+
+  async function loadAdmins() {
+    try {
+      const data = await api('/admins');
+      document.querySelector('#adminsTable tbody').innerHTML = data.length
+        ? data.map(function(a) {
+            return '<tr><td>' + a.name + '</td><td>' + a.email + '</td><td>' + fmt(a.created_at) + '</td>' +
+              '<td>' + (a.id !== user.id
+                ? '<button class="action-btn reject-btn" onclick="removeAdmin(' + a.id + ')">Remove</button>'
+                : '<span style="color:var(--muted);font-size:.85rem">You</span>') + '</td></tr>';
+          }).join('')
+        : empty('No admins found');
+    } catch (err) { console.error(err.message); }
+  }
+
+  document.getElementById('addAdminBtn').addEventListener('click', async function() {
+    var name = document.getElementById('new-admin-name').value.trim();
+    var email = document.getElementById('new-admin-email').value.trim();
+    var password = document.getElementById('new-admin-pass').value;
+    var alertEl = document.getElementById('admin-form-alert');
+    if (!name || !email || !password) {
+      alertEl.innerHTML = '<div class="alert alert-error" style="margin-bottom:1rem">All fields required.</div>';
+      return;
+    }
+    try {
+      await api('/admins', { method: 'POST', body: JSON.stringify({ name: name, email: email, password: password }) });
+      alertEl.innerHTML = '<div class="alert alert-success" style="margin-bottom:1rem">Admin added.</div>';
+      document.getElementById('new-admin-name').value = '';
+      document.getElementById('new-admin-email').value = '';
+      document.getElementById('new-admin-pass').value = '';
+      loadAdmins();
+    } catch (err) {
+      alertEl.innerHTML = '<div class="alert alert-error" style="margin-bottom:1rem">' + err.message + '</div>';
+    }
+  });
+
+  window.removeAdmin = async function(id) {
+    if (!confirm('Remove this admin?')) return;
+    try {
+      await api('/admins/' + id, { method: 'DELETE' });
+      loadAdmins();
+    } catch (err) { alert(err.message); }
+  };
+
   function loadTab(tab) {
     if (tab === 'overview') loadOverview();
     else if (tab === 'payouts') loadPayouts();
@@ -347,6 +459,8 @@ document.addEventListener('DOMContentLoaded', function () {
     else if (tab === 'users') loadUsers();
     else if (tab === 'sessions') loadSessions();
     else if (tab === 'payments') loadPayments();
+    else if (tab === 'wallet') loadWallet();
+    else if (tab === 'admins') loadAdmins();
   }
 
   loadOverview();

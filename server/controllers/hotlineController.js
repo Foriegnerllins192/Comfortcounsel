@@ -1,11 +1,11 @@
 const axios = require('axios');
 const { pool } = require('../database');
 
-// Normalize phone: strip spaces/dashes, ensure leading +233 or 0
+const SESSION_DURATION_MINUTES = 45; // Feature 4: 45-min call limit
+
 const normalizePhone = (phone) => {
   if (!phone) return null;
   let p = phone.replace(/[\s\-().]/g, '');
-  // Hubtel may send numbers as 233XXXXXXXXX — normalize to 0XXXXXXXXX for DB lookup
   if (p.startsWith('233')) p = '0' + p.slice(3);
   return p;
 };
@@ -13,35 +13,18 @@ const normalizePhone = (phone) => {
 const hubtelAuth = () =>
   Buffer.from(`${process.env.HUBTEL_CLIENT_ID}:${process.env.HUBTEL_CLIENT_SECRET}`).toString('base64');
 
-// Hubtel VXML-style response helpers
-const sayAndHangup = (text) => ({
-  Type: 'Say',
-  Text: text,
-  Voice: 'female',
-  Action: 'Hangup'
-});
-
-const forwardCall = (toPhone) => ({
-  Type: 'Bridge',
-  PhoneNumber: toPhone,
-  CallerId: process.env.HUBTEL_FROM,
-  Action: 'Hangup'
-});
+const sayAndHangup = (text) => ({ Type: 'Say', Text: text, Voice: 'female', Action: 'Hangup' });
+const forwardCall = (toPhone) => ({ Type: 'Bridge', PhoneNumber: toPhone, CallerId: process.env.HUBTEL_FROM, Action: 'Hangup' });
 
 /**
  * POST /api/hotline/incoming
- * Hubtel sends incoming call data here.
- * We check for a valid paid session and route accordingly.
+ * Feature 5: Double-check payment, active status, and expiry before forwarding.
+ * Feature 6: Prevent counselor from receiving call if already busy.
  */
 const handleIncomingCall = async (req, res) => {
   try {
-    // Hubtel sends caller number in various fields depending on API version
     const rawCaller =
-      req.body.CallerNumber ||
-      req.body.caller_number ||
-      req.body.From ||
-      req.query.CallerNumber ||
-      null;
+      req.body.CallerNumber || req.body.caller_number || req.body.From || req.query.CallerNumber || null;
 
     if (!rawCaller) {
       return res.json(sayAndHangup(
@@ -51,9 +34,9 @@ const handleIncomingCall = async (req, res) => {
 
     const callerPhone = normalizePhone(rawCaller);
 
-    // Look up a valid paid, non-expired session for this caller
+    // Feature 5: Verify payment_status='paid', session active, and not expired
     const sessionRes = await pool.query(
-      `SELECT s.id, s.counselor_phone, s.counselor_id
+      `SELECT s.id, s.counselor_phone, s.counselor_id, s.expires_at
        FROM sessions s
        WHERE s.caller_phone = $1
          AND s.payment_status = 'paid'
@@ -66,45 +49,45 @@ const handleIncomingCall = async (req, res) => {
 
     if (!sessionRes.rows.length) {
       return res.json(sayAndHangup(
-        'You do not have an active paid session. Please visit our website to book and pay for a session before calling.'
+        'Your session has expired. Please book another session on our website.'
       ));
     }
 
     const session = sessionRes.rows[0];
-    let counselorPhone = session.counselor_phone;
 
-    // Mark session as active (call in progress)
-    await pool.query(
-      "UPDATE sessions SET session_status='active' WHERE id=$1",
-      [session.id]
+    // Feature 6: Ensure counselor is not already on another active call
+    const counselorOnCall = await pool.query(
+      `SELECT id FROM sessions
+       WHERE counselor_id=$1 AND session_status='active' AND id != $2`,
+      [session.counselor_id, session.id]
     );
+    if (counselorOnCall.rows.length) {
+      return res.json(sayAndHangup(
+        'Your counselor is currently on another call. Please try again in a few minutes.'
+      ));
+    }
 
-    // Verify counselor phone is still valid (counselor still approved)
+    // Verify counselor is still approved
     const counselorRes = await pool.query(
-      `SELECT c.phone_number FROM counselors c
-       WHERE c.id=$1 AND c.status='approved'`,
+      `SELECT c.phone_number FROM counselors c WHERE c.id=$1 AND c.status='approved'`,
       [session.counselor_id]
     );
 
+    let counselorPhone;
     if (!counselorRes.rows.length) {
-      // Assigned counselor no longer available — try to find another
+      // Fallback to another available counselor
       const fallbackRes = await pool.query(
         `SELECT c.phone_number, c.id FROM counselors c
-         WHERE c.status='approved'
+         WHERE c.status='approved' AND c.is_available=TRUE
            AND c.id NOT IN (
              SELECT counselor_id FROM sessions
              WHERE session_status='active' AND counselor_id IS NOT NULL
            )
          LIMIT 1`
       );
-
       if (!fallbackRes.rows.length) {
-        return res.json(sayAndHangup(
-          'All counselors are currently busy. Please try again in a few minutes.'
-        ));
+        return res.json(sayAndHangup('All counselors are currently busy. Please try again in a few minutes.'));
       }
-
-      // Reassign to fallback counselor
       counselorPhone = fallbackRes.rows[0].phone_number;
       await pool.query(
         'UPDATE sessions SET counselor_id=$1, counselor_phone=$2 WHERE id=$3',
@@ -114,20 +97,62 @@ const handleIncomingCall = async (req, res) => {
       counselorPhone = counselorRes.rows[0].phone_number;
     }
 
-    // Forward the call — counselor's real number is never exposed to the caller
-    return res.json(forwardCall(counselorPhone));
+    // Feature 4: Mark call start time and set session active
+    await pool.query(
+      "UPDATE sessions SET session_status='active', call_started_at=NOW() WHERE id=$1",
+      [session.id]
+    );
 
+    // Feature 1: Mark counselor as busy
+    await pool.query('UPDATE counselors SET is_available=FALSE WHERE id=$1', [session.counselor_id]);
+
+    // Feature 4: Schedule auto-hangup after 45 minutes via Hubtel
+    scheduleCallTermination(session.id, session.counselor_id, SESSION_DURATION_MINUTES);
+
+    return res.json(forwardCall(counselorPhone));
   } catch (err) {
     console.error('Hotline error:', err.message);
-    return res.json(sayAndHangup(
-      'A system error occurred. Please try again shortly.'
-    ));
+    return res.json(sayAndHangup('A system error occurred. Please try again shortly.'));
   }
 };
 
 /**
+ * Feature 4: Auto-terminate call after SESSION_DURATION_MINUTES.
+ * Fires a Hubtel hangup request and marks session completed.
+ */
+const scheduleCallTermination = (sessionId, counselorId, minutes) => {
+  setTimeout(async () => {
+    try {
+      // Check if session is still active before terminating
+      const check = await pool.query(
+        "SELECT id FROM sessions WHERE id=$1 AND session_status='active'",
+        [sessionId]
+      );
+      if (!check.rows.length) return; // Already ended naturally
+
+      // Attempt to end the call via Hubtel
+      if (process.env.HUBTEL_CLIENT_ID && process.env.HUBTEL_CLIENT_SECRET) {
+        await axios.post(
+          `https://voice.hubtel.com/v1/calls/${sessionId}/hangup`,
+          {},
+          { headers: { Authorization: `Basic ${hubtelAuth()}` } }
+        ).catch(err => console.error('Hubtel hangup error:', err.message));
+      }
+
+      // Mark session completed and free counselor
+      await pool.query("UPDATE sessions SET session_status='completed' WHERE id=$1", [sessionId]);
+      await pool.query('UPDATE counselors SET is_available=TRUE WHERE id=$1', [counselorId]);
+
+      console.log(`Session #${sessionId} auto-terminated after ${minutes} minutes.`);
+    } catch (err) {
+      console.error('Auto-terminate error:', err.message);
+    }
+  }, minutes * 60 * 1000);
+};
+
+/**
  * POST /api/hotline/call-ended
- * Hubtel webhook when a call ends — mark session completed and trigger payout flow.
+ * Hubtel webhook when call ends naturally — complete session and free counselor.
  */
 const handleCallEnded = async (req, res) => {
   try {
@@ -138,19 +163,18 @@ const handleCallEnded = async (req, res) => {
 
     const callerPhone = normalizePhone(rawCaller);
 
-    // Find the active session for this caller
     const sessionRes = await pool.query(
-      `SELECT id FROM sessions
+      `SELECT s.id, s.counselor_id FROM sessions
        WHERE caller_phone=$1 AND session_status='active'
        ORDER BY created_at DESC LIMIT 1`,
       [callerPhone]
     );
 
     if (sessionRes.rows.length) {
-      await pool.query(
-        "UPDATE sessions SET session_status='completed' WHERE id=$1",
-        [sessionRes.rows[0].id]
-      );
+      const { id, counselor_id } = sessionRes.rows[0];
+      await pool.query("UPDATE sessions SET session_status='completed' WHERE id=$1", [id]);
+      // Feature 1: Free counselor availability
+      await pool.query('UPDATE counselors SET is_available=TRUE WHERE id=$1', [counselor_id]);
     }
 
     res.sendStatus(200);
@@ -160,20 +184,10 @@ const handleCallEnded = async (req, res) => {
   }
 };
 
-/**
- * GET /api/hotline/no-counselor
- * Fallback voice response.
- */
 const noCounselorAvailable = (req, res) => {
-  res.json(sayAndHangup(
-    'All counselors are currently busy. Please try again in a few minutes or visit our website.'
-  ));
+  res.json(sayAndHangup('All counselors are currently busy. Please try again in a few minutes or visit our website.'));
 };
 
-/**
- * POST /api/hotline/call  (authenticated)
- * Manually initiate an outbound call via Hubtel (admin/counselor use).
- */
 const makeCall = async (req, res) => {
   const { to, counselor_id } = req.body;
   try {

@@ -49,13 +49,33 @@
     <p style="color:var(--muted);margin-bottom:1.5rem;">You are about to book a session with <strong id="modal-counselor-name"></strong></p>
     <div style="background:var(--light);border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
       <div style="font-size:1.5rem;font-weight:700;color:var(--primary);">50 GHS</div>
-      <div style="color:var(--muted);font-size:.9rem;">One counseling session</div>
+      <div style="color:var(--muted);font-size:.9rem;">45-minute counseling session</div>
+    </div>
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label style="font-weight:600;display:block;margin-bottom:.4rem;">Your Phone Number</label>
+      <input type="tel" id="modal-caller-phone" placeholder="e.g. 0241234567" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;font-size:.95rem;" />
+      <small style="color:var(--muted)">The counselor will call you on this number after payment.</small>
     </div>
     <div id="modal-alert"></div>
     <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" id="confirm-book-btn">Pay with Paystack</button>
     </div>
+  </div>
+</div>
+
+<!-- HOTLINE MODAL (shown after payment) -->
+<div id="hotline-modal" class="modal-overlay">
+  <div class="modal-box" style="text-align:center;">
+    <div style="font-size:3rem;margin-bottom:.5rem;">✅</div>
+    <h3 style="color:var(--primary);margin-bottom:.5rem;">Payment Successful!</h3>
+    <p style="color:var(--muted);margin-bottom:1.5rem;">Your 45-minute session is now active. Call the hotline below to connect with your counselor.</p>
+    <div style="background:var(--light);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;">
+      <div style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;">COUNSELOR HOTLINE</div>
+      <div id="hotline-number" style="font-size:2rem;font-weight:700;color:var(--primary);letter-spacing:.1em;"></div>
+    </div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.5rem;">⏱ Session expires in 45 minutes from payment.</p>
+    <button class="btn btn-primary" onclick="document.getElementById('hotline-modal').classList.remove('open')">Got it</button>
   </div>
 </div>
 
@@ -82,11 +102,21 @@
         <div class="counselor-card">
           <img src="${c.profile_picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name) + '&background=2E7D6B&color=fff&size=200'}" alt="${c.name}" />
           <div class="card-body">
-            <h3>${c.name}</h3>
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;">
+              <h3 style="margin:0">${c.name}</h3>
+              <span style="font-size:.75rem;font-weight:700;padding:.2rem .55rem;border-radius:20px;
+                background:${c.is_available ? '#d1fae5' : '#fee2e2'};
+                color:${c.is_available ? '#065f46' : '#991b1b'}">
+                ${c.is_available ? '● Available' : '● Busy'}
+              </span>
+            </div>
             <span class="category-badge">${c.category}</span>
             <p>${c.bio ? c.bio.substring(0, 100) + (c.bio.length > 100 ? '...' : '') : 'Experienced counselor ready to help.'}</p>
             <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;">📍 ${c.location || 'Remote'} &nbsp;|&nbsp; ${c.years_experience || 0} yrs experience</p>
-            <button class="btn btn-primary" style="width:100%" onclick="openBooking(${c.id}, '${c.name.replace(/'/g,"\\'")}')">Book Session — 50 GHS</button>
+            <button class="btn ${c.is_available ? 'btn-primary' : 'btn-outline'}" style="width:100%;${!c.is_available ? 'opacity:.6;cursor:not-allowed' : ''}"
+              onclick="${c.is_available ? `openBooking(${c.id}, '${c.name.replace(/'/g,"\\'")}')` : 'alert(\"This counselor is currently busy. Please choose another counselor.\")'}">
+              ${c.is_available ? 'Book Session — 50 GHS' : 'Currently Busy'}
+            </button>
           </div>
         </div>
       `).join('');
@@ -108,6 +138,7 @@
     selectedCounselorId = id;
     document.getElementById('modal-counselor-name').textContent = name;
     document.getElementById('modal-alert').innerHTML = '';
+    document.getElementById('modal-caller-phone').value = '';
     document.getElementById('booking-modal').classList.add('open');
   }
 
@@ -115,14 +146,24 @@
     document.getElementById('booking-modal').classList.remove('open');
   }
 
+  function showHotline(number) {
+    document.getElementById('hotline-number').textContent = number;
+    document.getElementById('hotline-modal').classList.add('open');
+  }
+
   document.getElementById('confirm-book-btn').addEventListener('click', async () => {
     const btn = document.getElementById('confirm-book-btn');
+    const callerPhone = document.getElementById('modal-caller-phone').value.trim();
+    if (!callerPhone) {
+      document.getElementById('modal-alert').innerHTML = '<div class="alert alert-error">Please enter your phone number.</div>';
+      return;
+    }
     btn.disabled = true; btn.textContent = 'Processing...';
     try {
       const res = await fetch('/api/book-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('cc_token') },
-        body: JSON.stringify({ counselor_id: selectedCounselorId })
+        body: JSON.stringify({ counselor_id: selectedCounselorId, caller_phone: callerPhone })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -132,6 +173,45 @@
       btn.disabled = false; btn.textContent = 'Pay with Paystack';
     }
   });
+
+  // Feature 2: On page load, check if user already has an active paid session → show hotline banner
+  (async function checkActiveSession() {
+    const token = localStorage.getItem('cc_token');
+    if (!token) return;
+    try {
+      const res = await fetch('/api/active-session', { headers: { 'Authorization': 'Bearer ' + token } });
+      const data = await res.json();
+      if (data.active && data.hotline) {
+        const banner = document.createElement('div');
+        banner.style.cssText = 'background:#d1fae5;border:1px solid #6ee7b7;border-radius:10px;padding:1rem 1.5rem;margin:1rem auto;max-width:700px;text-align:center;';
+        banner.innerHTML = `<strong style="color:#065f46">Active session with ${data.session.counselor_name}.</strong>
+          Call your counselor hotline: <strong style="font-size:1.2rem;color:var(--primary)">${data.hotline}</strong>
+          &nbsp;<small style="color:var(--muted)">(expires ${new Date(data.session.expires_at).toLocaleTimeString()})</small>`;
+        document.querySelector('section').prepend(banner);
+      }
+    } catch { /* silent */ }
+  })();
+
+  // Feature 2: Handle Paystack redirect back — verify payment and reveal hotline
+  (async function handlePaymentReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get('reference') || params.get('trxref');
+    if (!reference) return;
+    const token = localStorage.getItem('cc_token');
+    if (!token) return;
+    window.history.replaceState({}, '', window.location.pathname);
+    try {
+      const res = await fetch(`/api/verify/${reference}`, { headers: { 'Authorization': 'Bearer ' + token } });
+      const data = await res.json();
+      if (data.success && data.hotline) {
+        showHotline(data.hotline);
+      } else if (data.error) {
+        alert('Payment verification failed: ' + data.error);
+      }
+    } catch (err) {
+      console.error('Verify error:', err.message);
+    }
+  })();
 
   loadCounselors();
 </script>

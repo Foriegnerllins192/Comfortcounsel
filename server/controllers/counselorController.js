@@ -34,7 +34,16 @@ const getCounselors = async (req, res) => {
   try {
     const { category } = req.query;
     let query = `
-      SELECT c.id, u.name, c.category, c.bio, c.location, c.years_experience, c.profile_picture, c.status
+      SELECT c.id, u.name, c.category, c.bio, c.location, c.years_experience,
+             c.profile_picture, c.status,
+             -- Feature 1: availability is false if counselor has an active paid session not expired
+             NOT EXISTS (
+               SELECT 1 FROM sessions s
+               WHERE s.counselor_id = c.id
+                 AND s.session_status IN ('scheduled','active')
+                 AND s.payment_status = 'paid'
+                 AND s.expires_at > NOW()
+             ) AS is_available
       FROM counselors c JOIN users u ON c.user_id = u.id
       WHERE c.status = 'approved'
     `;

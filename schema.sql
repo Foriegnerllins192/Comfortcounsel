@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS counselors (
   years_experience INTEGER DEFAULT 0,
   profile_picture VARCHAR(500),
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  is_available BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed')),
   session_status VARCHAR(20) DEFAULT 'scheduled' CHECK (session_status IN ('scheduled', 'active', 'completed', 'cancelled')),
   expires_at TIMESTAMP,
+  call_started_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
