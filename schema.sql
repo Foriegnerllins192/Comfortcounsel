@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS counselors (
   phone_number VARCHAR(20) NOT NULL,
   location VARCHAR(255),
   years_experience INTEGER DEFAULT 0,
-  profile_picture VARCHAR(500),
+  profile_picture TEXT,
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   is_available BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW()

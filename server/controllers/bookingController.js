@@ -5,7 +5,7 @@ const COUNSELOR_SHARE = 35;
 const ADMIN_SHARE = 15;
 const SESSION_PRICE = 50; // GHS
 const SESSION_DURATION_MINUTES = 45; // Feature 3: 45-minute sessions
-const HOTLINE = process.env.HOTLINE_NUMBER || '0203041012';
+const HOTLINE = process.env.HOTLINE_NUMBER || '0203045678';
 
 const creditWallet = async (client, userId, amount, description) => {
   await client.query(

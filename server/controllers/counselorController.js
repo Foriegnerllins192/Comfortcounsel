@@ -126,4 +126,28 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { registerCounselor, getCounselors, getCounselorById, getDashboard, updateProfile };
+const uploadProfilePicture = async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No image file provided' });
+
+  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowed.includes(req.file.mimetype))
+    return res.status(400).json({ error: 'Only JPEG, PNG, WebP or GIF images are allowed' });
+
+  if (req.file.size > 2 * 1024 * 1024)
+    return res.status(400).json({ error: 'Image must be under 2MB' });
+
+  const dataUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+
+  try {
+    await pool.query(
+      'UPDATE counselors SET profile_picture=$1 WHERE user_id=$2',
+      [dataUrl, req.user.id]
+    );
+    res.json({ message: 'Profile picture updated', profile_picture: dataUrl });
+  } catch (err) {
+    console.error('uploadProfilePicture error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { registerCounselor, getCounselors, getCounselorById, getDashboard, updateProfile, uploadProfilePicture };

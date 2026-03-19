@@ -8,14 +8,16 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
 
-// Routes
+// Routes — registered BEFORE static so API calls are never intercepted
 app.use('/api', require('./routes/auth'));
 app.use('/api/counselors', require('./routes/counselors'));
 app.use('/api', require('./routes/sessions'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/hotline', require('./routes/hotline'));
+
+// Static files after API routes
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Serve frontend for all non-API routes
 app.get('*', (req, res) => {

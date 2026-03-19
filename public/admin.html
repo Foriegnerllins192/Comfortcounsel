@@ -330,22 +330,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function loadCounselors() {
     try {
-      const pending = await api('/counselors/pending');
-      var rows = '';
-      if (currentFilter === 'pending') {
-        rows = pending.length
-          ? pending.map(function(c) {
-              return '<tr><td>' + c.name + '</td><td>' + c.email + '</td><td>' + c.category + '</td>' +
-                '<td>' + (c.location||'–') + '</td><td>' + c.years_experience + 'y</td>' +
-                '<td>' + badge('pending') + '</td>' +
-                '<td><button class="action-btn approve-btn" onclick="decide(' + c.id + ',\'approve\')">Approve</button> ' +
-                '<button class="action-btn reject-btn" onclick="decide(' + c.id + ',\'reject\')">Reject</button></td></tr>';
-            }).join('')
-          : empty('No pending counselors');
-      } else {
-        rows = empty('Approved/Rejected counselors are visible in the Sessions tab.');
-      }
-      document.querySelector('#counselorsTable tbody').innerHTML = rows;
+      const data = await api('/counselors?status=' + currentFilter);
+      const actionCol = currentFilter === 'pending';
+      document.querySelector('#counselorsTable tbody').innerHTML = data.length
+        ? data.map(function(c) {
+            return '<tr>' +
+              '<td>' + c.name + '</td>' +
+              '<td>' + c.email + '</td>' +
+              '<td>' + c.category + '</td>' +
+              '<td>' + (c.location||'–') + '</td>' +
+              '<td>' + c.years_experience + 'y</td>' +
+              '<td>' + badge(c.status) + '</td>' +
+              '<td>' + (actionCol
+                ? '<button class="action-btn approve-btn" onclick="decide(' + c.id + ',\'approve\')">Approve</button> ' +
+                  '<button class="action-btn reject-btn" onclick="decide(' + c.id + ',\'reject\')">Reject</button>'
+                : (c.status === 'approved'
+                    ? '<button class="action-btn reject-btn" onclick="decide(' + c.id + ',\'reject\')">Revoke</button>'
+                    : '<button class="action-btn approve-btn" onclick="decide(' + c.id + ',\'approve\')">Approve</button>')) +
+              '</td></tr>';
+          }).join('')
+        : empty('No ' + currentFilter + ' counselors');
     } catch (err) { console.error(err.message); }
   }
 

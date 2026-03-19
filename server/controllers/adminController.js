@@ -13,6 +13,24 @@ const getPendingCounselors = async (req, res) => {
   }
 };
 
+const getAllCounselors = async (req, res) => {
+  const { status } = req.query; // pending | approved | rejected (optional)
+  try {
+    const params = [];
+    let where = '';
+    if (status) { where = 'WHERE c.status=$1'; params.push(status); }
+    const result = await pool.query(
+      `SELECT c.*, u.name, u.email FROM counselors c
+       JOIN users u ON c.user_id=u.id
+       ${where} ORDER BY c.created_at DESC`,
+      params
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 const approveCounselor = async (req, res) => {
   const { id } = req.params;
   const { action } = req.body;
@@ -178,6 +196,6 @@ const payCounselor = async (req, res) => {
 };
 
 module.exports = {
-  getPendingCounselors, approveCounselor, getUsers, getSessions, getPayments,
+  getPendingCounselors, getAllCounselors, approveCounselor, getUsers, getSessions, getPayments,
   getAdmins, addAdmin, removeAdmin, getAdminWallet, getPayoutOverview, payCounselor
 };
