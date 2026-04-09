@@ -59,7 +59,7 @@
     <div id="modal-alert"></div>
     <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" id="confirm-book-btn">Pay with Paystack</button>
+      <button class="btn btn-primary" id="confirm-book-btn">Pay with Hubtel</button>
     </div>
   </div>
 </div>
@@ -114,7 +114,7 @@
             <p>${c.bio ? c.bio.substring(0, 100) + (c.bio.length > 100 ? '...' : '') : 'Experienced counselor ready to help.'}</p>
             <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;">📍 ${c.location || 'Remote'} &nbsp;|&nbsp; ${c.years_experience || 0} yrs experience</p>
             <button class="btn ${c.is_available ? 'btn-primary' : 'btn-outline'}" style="width:100%;${!c.is_available ? 'opacity:.6;cursor:not-allowed' : ''}"
-              onclick="${c.is_available ? `openBooking(${c.id}, '${c.name.replace(/'/g,"\\'")}')` : 'alert(\"This counselor is currently busy. Please choose another counselor.\")'}">
+              onclick="${c.is_available ? `checkAvailabilityAndBook(${c.id}, '${c.name.replace(/'/g,"\\'")}')` : 'alert(\"This counselor is currently busy. Please choose another counselor.\")'}">
               ${c.is_available ? 'Book Session — 50 GHS' : 'Currently Busy'}
             </button>
           </div>
@@ -131,6 +131,26 @@
     e.target.classList.add('active');
     loadCounselors(e.target.dataset.cat);
   });
+
+  async function checkAvailabilityAndBook(id, name) {
+    const token = localStorage.getItem('cc_token');
+    if (!token) { window.location.href = 'login.html'; return; }
+    
+    try {
+      const res = await fetch(`/api/counselor/${id}/status`);
+      const data = await res.json();
+      
+      if (!data.available) {
+        alert('This counselor is currently busy. Please choose another counselor.');
+        return;
+      }
+      
+      openBooking(id, name);
+    } catch (err) {
+      console.error('Availability check failed:', err);
+      alert('Could not verify counselor availability. Please try again.');
+    }
+  }
 
   function openBooking(id, name) {
     const token = localStorage.getItem('cc_token');
@@ -170,7 +190,7 @@
       window.location.href = data.payment_url;
     } catch (err) {
       document.getElementById('modal-alert').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
-      btn.disabled = false; btn.textContent = 'Pay with Paystack';
+      btn.disabled = false; btn.textContent = 'Pay with Hubtel';
     }
   });
 
@@ -192,7 +212,7 @@
     } catch { /* silent */ }
   })();
 
-  // Feature 2: Handle Paystack redirect back — verify payment and reveal hotline
+  // Feature 2: Handle Hubtel redirect back — verify payment and reveal hotline
   (async function handlePaymentReturn() {
     const params = new URLSearchParams(window.location.search);
     const reference = params.get('reference') || params.get('trxref');

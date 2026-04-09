@@ -33,13 +33,16 @@
       </div>
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Your password" required />
+        <div style="position:relative;display:flex;align-items:center;">
+          <input type="password" id="password" placeholder="Your password" required style="flex:1;padding-right:2.5rem;" />
+          <button type="button" id="toggle-password" style="position:absolute;right:0.75rem;background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--muted);padding:0.5rem;" title="Show/hide password">👁️</button>
+        </div>
       </div>
       <button type="submit" class="btn btn-primary" style="width:100%">Login</button>
     </form>
     <div class="form-footer">
       New user? <a href="#" id="show-register">Create an account</a> &nbsp;|&nbsp;
-      <a href="register-counselor.html">Become a counselor</a>
+      <a href="#" id="show-forgot">Forgot password?</a>
     </div>
   </div>
 
@@ -58,12 +61,56 @@
       </div>
       <div class="form-group">
         <label for="reg-password">Password</label>
-        <input type="password" id="reg-password" placeholder="Min. 6 characters" required minlength="6" />
+        <div style="position:relative;display:flex;align-items:center;">
+          <input type="password" id="reg-password" placeholder="Min. 6 characters" required minlength="6" style="flex:1;padding-right:2.5rem;" />
+          <button type="button" id="toggle-reg-password" style="position:absolute;right:0.75rem;background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--muted);padding:0.5rem;" title="Show/hide password">👁️</button>
+        </div>
       </div>
       <button type="submit" class="btn btn-primary" style="width:100%">Create Account</button>
     </form>
     <div class="form-footer">
       Already have an account? <a href="#" id="show-login">Login here</a>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD MODAL -->
+  <div id="forgot-card" class="form-card" style="display:none;">
+    <h2>Reset Password</h2>
+    <p class="form-sub">Enter your email to receive a reset code</p>
+    <div id="forgot-alert"></div>
+    <form id="forgot-form">
+      <div class="form-group">
+        <label for="forgot-email">Email Address</label>
+        <input type="email" id="forgot-email" placeholder="you@example.com" required />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%">Send Reset Code</button>
+    </form>
+    <div class="form-footer">
+      <a href="#" id="back-to-login">Back to login</a>
+    </div>
+  </div>
+
+  <!-- VERIFY CODE MODAL -->
+  <div id="verify-card" class="form-card" style="display:none;">
+    <h2>Verify Code</h2>
+    <p class="form-sub">Enter the 6-digit code sent to your email</p>
+    <div id="verify-alert"></div>
+    <form id="verify-form">
+      <div class="form-group">
+        <label for="reset-code">Reset Code</label>
+        <input type="text" id="reset-code" placeholder="000000" maxlength="6" required />
+      </div>
+      <div class="form-group">
+        <label for="new-password">New Password</label>
+        <div style="position:relative;display:flex;align-items:center;">
+          <input type="password" id="new-password" placeholder="Min. 6 characters" required minlength="6" style="flex:1;padding-right:2.5rem;" />
+          <button type="button" id="toggle-new-password" style="position:absolute;right:0.75rem;background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--muted);padding:0.5rem;" title="Show/hide password">👁️</button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%">Reset Password</button>
+    </form>
+    <div class="form-footer">
+      <a href="#" id="back-to-forgot">Back</a>
     </div>
   </div>
 </div>
@@ -76,7 +123,43 @@ document.addEventListener('DOMContentLoaded', () => {
   const navLinks = document.getElementById('nav-links');
   if (navToggle) navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
 
-  // Card toggle
+  // Password visibility toggle - Login
+  const togglePasswordBtn = document.getElementById('toggle-password');
+  const passwordInput = document.getElementById('password');
+  if (togglePasswordBtn) {
+    togglePasswordBtn.addEventListener('click', e => {
+      e.preventDefault();
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      togglePasswordBtn.textContent = isPassword ? '🙈' : '👁️';
+    });
+  }
+
+  // Password visibility toggle - Register
+  const toggleRegPasswordBtn = document.getElementById('toggle-reg-password');
+  const regPasswordInput = document.getElementById('reg-password');
+  if (toggleRegPasswordBtn) {
+    toggleRegPasswordBtn.addEventListener('click', e => {
+      e.preventDefault();
+      const isPassword = regPasswordInput.type === 'password';
+      regPasswordInput.type = isPassword ? 'text' : 'password';
+      toggleRegPasswordBtn.textContent = isPassword ? '🙈' : '👁️';
+    });
+  }
+
+  // Password visibility toggle - New Password
+  const toggleNewPasswordBtn = document.getElementById('toggle-new-password');
+  const newPasswordInput = document.getElementById('new-password');
+  if (toggleNewPasswordBtn) {
+    toggleNewPasswordBtn.addEventListener('click', e => {
+      e.preventDefault();
+      const isPassword = newPasswordInput.type === 'password';
+      newPasswordInput.type = isPassword ? 'text' : 'password';
+      toggleNewPasswordBtn.textContent = isPassword ? '🙈' : '👁️';
+    });
+  }
+
+  // Card navigation
   document.getElementById('show-register').addEventListener('click', e => {
     e.preventDefault();
     document.getElementById('login-card').style.display = 'none';
@@ -87,6 +170,26 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     document.getElementById('register-card').style.display = 'none';
     document.getElementById('login-card').style.display = 'block';
+  });
+
+  document.getElementById('show-forgot').addEventListener('click', e => {
+    e.preventDefault();
+    document.getElementById('login-card').style.display = 'none';
+    document.getElementById('forgot-card').style.display = 'block';
+  });
+
+  document.getElementById('back-to-login').addEventListener('click', e => {
+    e.preventDefault();
+    document.getElementById('forgot-card').style.display = 'none';
+    document.getElementById('login-card').style.display = 'block';
+    document.getElementById('forgot-alert').innerHTML = '';
+  });
+
+  document.getElementById('back-to-forgot').addEventListener('click', e => {
+    e.preventDefault();
+    document.getElementById('verify-card').style.display = 'none';
+    document.getElementById('forgot-card').style.display = 'block';
+    document.getElementById('verify-alert').innerHTML = '';
   });
 
   // Login
@@ -139,6 +242,99 @@ document.addEventListener('DOMContentLoaded', () => {
       alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
       btn.disabled = false;
       btn.textContent = 'Create Account';
+    }
+  });
+
+  // Forgot Password Form
+  document.getElementById('forgot-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    const alertEl = document.getElementById('forgot-alert');
+    const email = document.getElementById('forgot-email').value.trim();
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    alertEl.innerHTML = '';
+    try {
+      console.log('[FORGOT PASSWORD] Sending request for email:', email);
+      const res = await fetch('/api/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      console.log('[FORGOT PASSWORD] Response:', { status: res.status, data });
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      alertEl.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+      // Store email for verify form
+      sessionStorage.setItem('reset_email', email);
+      setTimeout(() => {
+        document.getElementById('forgot-card').style.display = 'none';
+        document.getElementById('verify-card').style.display = 'block';
+        document.getElementById('forgot-alert').innerHTML = '';
+      }, 1500);
+    } catch (err) {
+      console.error('[FORGOT PASSWORD ERROR]', err);
+      alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      btn.disabled = false;
+      btn.textContent = 'Send Reset Code';
+    }
+  });
+
+  // Verify Code & Reset Password Form
+  document.getElementById('verify-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    const alertEl = document.getElementById('verify-alert');
+    btn.disabled = true;
+    btn.textContent = 'Resetting...';
+    alertEl.innerHTML = '';
+    try {
+      const email = sessionStorage.getItem('reset_email');
+      if (!email) throw new Error('Email not found. Please start over.');
+      const resetCode = document.getElementById('reset-code').value.trim();
+      const newPassword = document.getElementById('new-password').value;
+      
+      if (!resetCode || resetCode.length !== 6) {
+        throw new Error('Reset code must be 6 digits');
+      }
+      if (!newPassword || newPassword.length < 6) {
+        throw new Error('Password must be at least 6 characters');
+      }
+      
+      console.log('[RESET PASSWORD] Sending request:', { email, resetCode, passwordLength: newPassword.length });
+      
+      // Use plain fetch WITHOUT Authorization header (not apiFetch)
+      const res = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          reset_code: resetCode,
+          new_password: newPassword
+        })
+      });
+      
+      const data = await res.json();
+      console.log('[RESET PASSWORD] Response:', { status: res.status, data });
+      
+      if (!res.ok) {
+        throw new Error(data.error || `Request failed with status ${res.status}`);
+      }
+      
+      alertEl.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+      setTimeout(() => {
+        document.getElementById('verify-card').style.display = 'none';
+        document.getElementById('login-card').style.display = 'block';
+        document.getElementById('verify-alert').innerHTML = '';
+        document.getElementById('forgot-form').reset();
+        document.getElementById('verify-form').reset();
+        sessionStorage.removeItem('reset_email');
+      }, 1500);
+    } catch (err) {
+      console.error('[RESET PASSWORD ERROR]', err);
+      alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      btn.disabled = false;
+      btn.textContent = 'Reset Password';
     }
   });
 

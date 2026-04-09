@@ -81,6 +81,29 @@ const initDB = async () => {
         status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'failed')),
         created_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS password_resets (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        reset_token VARCHAR(64) NOT NULL UNIQUE,
+        reset_token_expiry TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Migrations: safely add/alter columns that may not exist in older deployments
+    await client.query(`
+      -- Drop old password_resets table if it has old schema
+      DROP TABLE IF EXISTS password_resets CASCADE;
+      
+      -- Recreate with new schema
+      CREATE TABLE IF NOT EXISTS password_resets (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        reset_token VARCHAR(64) NOT NULL UNIQUE,
+        reset_token_expiry TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
     `);
 
     // Migrations: safely add/alter columns that may not exist in older deployments

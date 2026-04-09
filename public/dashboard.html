@@ -283,7 +283,7 @@ async function show(section) {
           <td>${badge(s.session_status)}</td>
           <td>${fmt(s.created_at)}</td>
           <td>${s.payment_status==='paid'&&s.session_status==='scheduled'
-            ? `<button class="complete-btn" onclick="completeSession(${s.id})">Mark Complete</button>`
+            ? `<button class="complete-btn" style="background:var(--primary);margin-right:.5rem" onclick="startSessionCall(${s.id})">📞 Start Call</button><button class="complete-btn" onclick="completeSession(${s.id})">✓ Mark Complete</button>`
             : '–'}</td>
           </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">No sessions yet</td></tr>'}
         </tbody>
@@ -429,6 +429,24 @@ async function completeSession(sessionId) {
     show('c-sessions');
   } catch (err) {
     alert(err.message);
+  }
+}
+
+async function startSessionCall(sessionId) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '📞 Calling...';
+  try {
+    const data = await apiFetch('/api/start-session-call', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId })
+    });
+    alert(`✅ Call initiated!\n\nHotline: ${data.hotline}\n\nThe client will receive a call shortly.`);
+    show('c-sessions');
+  } catch (err) {
+    alert('❌ Failed to start call: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = '📞 Start Call';
   }
 }
 

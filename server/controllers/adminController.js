@@ -1,5 +1,6 @@
 const { pool } = require('../database');
 const bcrypt = require('bcryptjs');
+const { sendApprovalEmail, sendRejectionEmail } = require('../services/emailService');
 
 const getPendingCounselors = async (req, res) => {
   try {
@@ -37,6 +38,28 @@ const approveCounselor = async (req, res) => {
   const status = action === 'approve' ? 'approved' : 'rejected';
   try {
     await pool.query('UPDATE counselors SET status=$1 WHERE id=$2', [status, id]);
+
+    // Fetch counselor name + email for notification
+    const result = await pool.query(
+      `SELECT u.name, u.email FROM counselors c
+       JOIN users u ON c.user_id = u.id WHERE c.id = $1`,
+      [id]
+    );
+
+    if (result.rows.length) {
+      const { name, email } = result.rows[0];
+      // Fire-and-forget — email failure must not block the response
+      if (status === 'approved') {
+        sendApprovalEmail(name, email).catch(err =>
+          console.error(`Approval email failed for ${email}:`, err.message)
+        );
+      } else {
+        sendRejectionEmail(name, email).catch(err =>
+          console.error(`Rejection email failed for ${email}:`, err.message)
+        );
+      }
+    }
+
     res.json({ message: `Counselor ${status}` });
   } catch (err) {
     res.status(500).json({ error: err.message });

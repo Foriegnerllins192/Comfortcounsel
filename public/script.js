@@ -20,7 +20,7 @@
     links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
   }
 
-  // Handle Paystack callback — verify payment if reference in URL
+  // Handle Hubtel callback — verify payment if reference in URL
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('reference') || params.get('trxref');
   if (ref && token) {
