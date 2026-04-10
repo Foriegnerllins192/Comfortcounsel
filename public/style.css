@@ -120,6 +120,32 @@ section { padding: 4rem 1.5rem; }
 }
 .counselor-card p { color: var(--muted); font-size: .9rem; margin-bottom: 1rem; line-height: 1.5; }
 
+/* Info button on counselor card */
+.info-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: all .2s;
+}
+.info-btn:hover {
+  background: var(--primary-dark);
+  transform: scale(1.1);
+}
+.info-btn:active {
+  transform: scale(0.95);
+}
+
 /* ── FILTER BAR ── */
 .filter-bar { display: flex; gap: .75rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; }
 .filter-btn { padding: .5rem 1rem; border-radius: 20px; border: 2px solid var(--border); background: var(--white); cursor: pointer; font-weight: 500; transition: all .2s; font-size: .875rem; }

@@ -35,15 +35,15 @@ const getCounselors = async (req, res) => {
     const { category } = req.query;
     let query = `
       SELECT c.id, u.name, c.category, c.bio, c.location, c.years_experience,
-             c.profile_picture, c.status,
-             -- Feature 1: availability is false if counselor has an active paid session not expired
-             NOT EXISTS (
+             c.profile_picture, c.status, c.is_available,
+             -- Check if counselor has an active paid session not expired
+             EXISTS (
                SELECT 1 FROM sessions s
                WHERE s.counselor_id = c.id
                  AND s.session_status IN ('scheduled','active')
                  AND s.payment_status = 'paid'
                  AND s.expires_at > NOW()
-             ) AS is_available
+             ) AS has_active_session
       FROM counselors c JOIN users u ON c.user_id = u.id
       WHERE c.status = 'approved'
     `;
@@ -52,7 +52,14 @@ const getCounselors = async (req, res) => {
     query += ' ORDER BY c.id DESC';
 
     const result = await pool.query(query, params);
-    res.json(result.rows);
+    
+    // Map the results to show is_available as false if they have active session OR manually set unavailable
+    const counselors = result.rows.map(c => ({
+      ...c,
+      is_available: c.is_available && !c.has_active_session
+    }));
+    
+    res.json(counselors);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -150,4 +157,21 @@ const uploadProfilePicture = async (req, res) => {
   }
 };
 
-module.exports = { registerCounselor, getCounselors, getCounselorById, getDashboard, updateProfile, uploadProfilePicture };
+const updateAvailability = async (req, res) => {
+  const { is_available } = req.body;
+  if (typeof is_available !== 'boolean') {
+    return res.status(400).json({ error: 'is_available must be a boolean' });
+  }
+
+  try {
+    await pool.query(
+      'UPDATE counselors SET is_available=$1 WHERE user_id=$2',
+      [is_available, req.user.id]
+    );
+    res.json({ message: `Availability updated to ${is_available ? 'Available' : 'Unavailable'}` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { registerCounselor, getCounselors, getCounselorById, getDashboard, updateProfile, uploadProfilePicture, updateAvailability };

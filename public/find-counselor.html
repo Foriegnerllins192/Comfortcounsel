@@ -42,6 +42,40 @@
   </div>
 </section>
 
+<!-- COUNSELOR INFO MODAL -->
+<div id="info-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <h3 style="color:var(--primary);margin:0;">Counselor Details</h3>
+      <button onclick="closeInfoModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <img id="info-modal-pic" src="" alt="Counselor" style="width:140px;height:140px;border-radius:50%;object-fit:cover;margin:0 auto 1rem;display:block;box-shadow:0 4px 12px rgba(0,0,0,0.15);" />
+      <h2 id="info-modal-name" style="margin:0;color:var(--text);"></h2>
+      <p id="info-modal-category" style="color:var(--primary);font-weight:600;margin:.25rem 0;"></p>
+    </div>
+    <div style="background:var(--light);border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
+      <div style="margin-bottom:1rem;">
+        <label style="font-weight:600;color:var(--muted);font-size:.85rem;">EXPERIENCE</label>
+        <p id="info-modal-experience" style="margin:.25rem 0;font-size:1.1rem;color:var(--text);"></p>
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="font-weight:600;color:var(--muted);font-size:.85rem;">LOCATION</label>
+        <p id="info-modal-location" style="margin:.25rem 0;color:var(--text);">📍 <span id="info-modal-location-text"></span></p>
+      </div>
+      <div>
+        <label style="font-weight:600;color:var(--muted);font-size:.85rem;">PHONE</label>
+        <p id="info-modal-phone" style="margin:.25rem 0;color:var(--text);"></p>
+      </div>
+    </div>
+    <div style="margin-bottom:1.5rem;">
+      <label style="font-weight:600;color:var(--muted);font-size:.85rem;display:block;margin-bottom:.5rem;">ABOUT</label>
+      <p id="info-modal-bio" style="color:var(--text);line-height:1.6;margin:0;"></p>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="closeInfoModal()">Close</button>
+  </div>
+</div>
+
 <!-- BOOKING MODAL -->
 <div id="booking-modal" class="modal-overlay">
   <div class="modal-box">
@@ -100,7 +134,10 @@
       }
       grid.innerHTML = counselors.map(c => `
         <div class="counselor-card">
-          <img src="${c.profile_picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name) + '&background=2E7D6B&color=fff&size=200'}" alt="${c.name}" />
+          <div style="position:relative;">
+            <img src="${c.profile_picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name) + '&background=2E7D6B&color=fff&size=200'}" alt="${c.name}" />
+            <button class="info-btn" onclick="openCounselorInfo(${c.id}, '${c.name.replace(/'/g,"\\'")}', '${c.category.replace(/'/g,"\\'")}', '${(c.bio || '').replace(/'/g,"\\'")}', '${c.location.replace(/'/g,"\\'")}', ${c.years_experience}, '${c.phone_number || ''}')" title="View more info">ℹ️</button>
+          </div>
           <div class="card-body">
             <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;">
               <h3 style="margin:0">${c.name}</h3>
@@ -164,6 +201,35 @@
 
   function closeModal() {
     document.getElementById('booking-modal').classList.remove('open');
+  }
+
+  function openCounselorInfo(id, name, category, bio, location, experience, phone) {
+    document.getElementById('info-modal-name').textContent = name;
+    document.getElementById('info-modal-category').textContent = category;
+    document.getElementById('info-modal-experience').textContent = experience + ' years';
+    document.getElementById('info-modal-location-text').textContent = location || 'Remote';
+    document.getElementById('info-modal-phone').textContent = phone || 'Not provided';
+    document.getElementById('info-modal-bio').textContent = bio || 'Experienced counselor ready to help.';
+    
+    // Fetch and display profile picture
+    fetch(`/api/counselor/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.profile_picture) {
+          document.getElementById('info-modal-pic').src = data.profile_picture;
+        } else {
+          document.getElementById('info-modal-pic').src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=2E7D6B&color=fff&size=200';
+        }
+      })
+      .catch(() => {
+        document.getElementById('info-modal-pic').src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=2E7D6B&color=fff&size=200';
+      });
+    
+    document.getElementById('info-modal').classList.add('open');
+  }
+
+  function closeInfoModal() {
+    document.getElementById('info-modal').classList.remove('open');
   }
 
   function showHotline(number) {
@@ -234,6 +300,27 @@
   })();
 
   loadCounselors();
+
+  // Smart polling - only reload if data actually changed
+  let lastCounselorData = null;
+  setInterval(async () => {
+    try {
+      const activeFilter = document.querySelector('.filter-btn.active');
+      const category = activeFilter ? activeFilter.dataset.cat : '';
+      const url = category ? `/api/counselors?category=${encodeURIComponent(category)}` : '/api/counselors';
+      const res = await fetch(url);
+      const counselors = await res.json();
+      
+      // Only reload if availability changed
+      const currentData = JSON.stringify(counselors.map(c => ({ id: c.id, is_available: c.is_available })));
+      if (lastCounselorData !== currentData) {
+        lastCounselorData = currentData;
+        loadCounselors(category);
+      }
+    } catch (err) {
+      console.error('Polling error:', err);
+    }
+  }, 5000);
 </script>
 </body>
 </html>

@@ -336,6 +336,13 @@ async function show(section) {
           <div class="info-row"><span class="info-label">Email</span><span>${p.email}</span></div>
           <div class="info-row"><span class="info-label">Category</span><span>${p.category}</span></div>
           <div class="info-row"><span class="info-label">Status</span><span>${badge(p.status)}</span></div>
+          <div class="info-row" style="align-items:center;gap:1rem">
+            <span class="info-label">Availability</span>
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;margin:0">
+              <input type="checkbox" id="availability-toggle" ${p.is_available ? 'checked' : ''} onchange="toggleAvailability()" style="width:18px;height:18px;cursor:pointer" />
+              <span id="availability-text" style="font-weight:600;color:${p.is_available ? 'var(--success)' : 'var(--danger)'}">${p.is_available ? '● Available' : '● Unavailable'}</span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -578,6 +585,33 @@ async function changePassword() {
     document.getElementById('new-pw').value = '';
   } catch (err) {
     alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+  }
+}
+
+async function toggleAvailability() {
+  const toggle = document.getElementById('availability-toggle');
+  const text = document.getElementById('availability-text');
+  const isAvailable = toggle.checked;
+  
+  try {
+    const data = await apiFetch('/api/counselors/availability', {
+      method: 'PUT',
+      body: JSON.stringify({ is_available: isAvailable })
+    });
+    
+    text.textContent = isAvailable ? '● Available' : '● Unavailable';
+    text.style.color = isAvailable ? 'var(--success)' : 'var(--danger)';
+    document.getElementById('profile-alert').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+    
+    // Broadcast to other tabs/windows AND trigger same-tab update
+    const updateEvent = new CustomEvent('counselor-availability-changed', {
+      detail: { isAvailable: isAvailable, timestamp: Date.now() }
+    });
+    window.dispatchEvent(updateEvent);
+    localStorage.setItem('counselor_availability_updated', Date.now().toString());
+  } catch (err) {
+    toggle.checked = !isAvailable;
+    document.getElementById('profile-alert').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
   }
 }
 

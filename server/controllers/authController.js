@@ -39,6 +39,14 @@ const login = async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password)))
       return res.status(401).json({ error: 'Invalid credentials' });
 
+    // If user is a counselor, automatically set them as available
+    if (user.role === 'counselor') {
+      await pool.query(
+        'UPDATE counselors SET is_available=TRUE WHERE user_id=$1',
+        [user.id]
+      );
+    }
+
     const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
   } catch (err) {
