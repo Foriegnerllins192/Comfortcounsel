@@ -7,6 +7,7 @@ const registerCounselor = async (req, res) => {
 
   const bcrypt = require('bcryptjs');
   const jwt = require('jsonwebtoken');
+  const { sendPendingApprovalEmail } = require('../services/emailService');
 
   try {
     const exists = await pool.query('SELECT id FROM users WHERE email=$1', [email]);
@@ -24,8 +25,15 @@ const registerCounselor = async (req, res) => {
       [user.id, category, bio || '', phone_number, location || '', years_experience || 0]
     );
 
+    // Send pending approval email
+    console.log('[COUNSELOR_REGISTRATION] Sending pending approval email to:', email);
+    await sendPendingApprovalEmail(name, email)
+      .then(() => console.log('[COUNSELOR_REGISTRATION] Email sent successfully to:', email))
+      .catch(err => console.error('[COUNSELOR_REGISTRATION] Email failed:', err.message));
+
     res.status(201).json({ message: 'Registration submitted. Awaiting admin approval.', user });
   } catch (err) {
+    console.error('[COUNSELOR_REGISTRATION] Error:', err.message);
     res.status(500).json({ error: err.message });
   }
 };
@@ -36,7 +44,6 @@ const getCounselors = async (req, res) => {
     let query = `
       SELECT c.id, u.name, c.category, c.bio, c.location, c.years_experience,
              c.profile_picture, c.status, c.is_available,
-             -- Check if counselor has an active paid session not expired
              EXISTS (
                SELECT 1 FROM sessions s
                WHERE s.counselor_id = c.id
@@ -55,12 +62,20 @@ const getCounselors = async (req, res) => {
     
     // Map the results to show is_available as false if they have active session OR manually set unavailable
     const counselors = result.rows.map(c => ({
-      ...c,
+      id: c.id,
+      name: c.name,
+      category: c.category,
+      bio: c.bio,
+      location: c.location,
+      years_experience: c.years_experience,
+      profile_picture: c.profile_picture,
+      status: c.status,
       is_available: c.is_available && !c.has_active_session
     }));
     
     res.json(counselors);
   } catch (err) {
+    console.error('getCounselors error:', err.message);
     res.status(500).json({ error: err.message });
   }
 };

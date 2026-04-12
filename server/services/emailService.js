@@ -11,6 +11,47 @@ const transporter = nodemailer.createTransport({
 const APP_URL = process.env.APP_URL || 'https://comfortcounsel.onrender.com';
 
 /**
+ * Send counselor pending approval email (sent after registration).
+ */
+const sendPendingApprovalEmail = async (name, email) => {
+  await transporter.sendMail({
+    from: `"Comfort Counsel" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: 'Application Received – Comfort Counsel',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;border:1px solid #e5e7eb;border-radius:12px;">
+        <div style="text-align:center;margin-bottom:1.5rem;">
+          <h1 style="color:#2E7D6B;margin:0">🌿 Comfort Counsel</h1>
+        </div>
+        <h2 style="color:#1f2937">Thank You for Applying, ${name}! 👋</h2>
+        <p style="color:#4b5563;line-height:1.7">
+          We have received your application to become a counselor on Comfort Counsel.
+        </p>
+        <p style="color:#4b5563;line-height:1.7">
+          Our team is currently reviewing your credentials and information. We will notify you via email
+          <strong>within 24-48 hours</strong> with a decision on your application.
+        </p>
+        <div style="background:#f3f4f6;border-left:4px solid #2E7D6B;padding:1rem;margin:1.5rem 0;border-radius:4px;">
+          <p style="color:#4b5563;margin:0;line-height:1.7">
+            <strong>What happens next?</strong><br/>
+            Once approved, you'll be able to log in to your dashboard and start receiving session requests from clients.
+          </p>
+        </div>
+        <p style="color:#4b5563;line-height:1.7">
+          If you have any questions in the meantime, feel free to reach out to our support team.
+        </p>
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:1.5rem 0" />
+        <p style="color:#9ca3af;font-size:.85rem;text-align:center">
+          Best regards,<br/>
+          <strong style="color:#2E7D6B">The Comfort Counsel Team</strong><br/>
+          <a href="${APP_URL}" style="color:#2E7D6B">${APP_URL}</a>
+        </p>
+      </div>
+    `
+  });
+};
+
+/**
  * Send counselor approval email.
  */
 const sendApprovalEmail = async (name, email) => {
@@ -136,4 +177,4 @@ const sendPasswordResetEmail = async (email, name, resetLink) => {
   });
 };
 
-module.exports = { sendApprovalEmail, sendRejectionEmail, sendPasswordResetEmail };
+module.exports = { sendPendingApprovalEmail, sendApprovalEmail, sendRejectionEmail, sendPasswordResetEmail };
