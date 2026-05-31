@@ -5,126 +5,856 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Become a Counselor - Comfort Counsel</title>
   <link rel="stylesheet" href="style.css" />
-<script src="api.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const t = document.getElementById('nav-toggle');
-    if (t) t.addEventListener('click', () => document.getElementById('nav-links').classList.toggle('open'));
-  });
-</script>
+  <style>
+    .register-page {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      padding: 2rem 1rem;
+    }
+    
+    .register-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 1.5rem;
+      padding: 3rem;
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .register-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .register-logo {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .register-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .register-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.125rem;
+    }
+    
+    .steps-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    
+    .step-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--gray-300);
+      transition: var(--transition);
+    }
+    
+    .step-dot.active {
+      background: var(--primary);
+      width: 32px;
+      border-radius: 6px;
+    }
+    
+    .form-section {
+      display: none;
+    }
+    
+    .form-section.active {
+      display: block;
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .section-subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+    
+    .form-label .required {
+      color: var(--danger);
+    }
+    
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+    
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .form-textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    .form-help {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.375rem;
+    }
+    
+    .specialties-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    
+    .specialty-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      border: 2px solid var(--border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .specialty-checkbox:hover {
+      border-color: var(--primary);
+      background: var(--bg-secondary);
+    }
+    
+    .specialty-checkbox input {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    
+    .specialty-checkbox label {
+      cursor: pointer;
+      font-weight: 500;
+    }
+    
+    .level-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .level-option {
+      padding: 1.5rem;
+      border: 2px solid var(--border);
+      border-radius: 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .level-option:hover {
+      border-color: var(--primary);
+      background: var(--bg-secondary);
+    }
+    
+    .level-option.selected {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+    }
+    
+    .level-option input {
+      display: none;
+    }
+    
+    .level-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .level-name {
+      font-weight: 700;
+      font-size: 1.125rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .level-price {
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
+    
+    .file-upload {
+      border: 2px dashed var(--border);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .file-upload:hover {
+      border-color: var(--primary);
+      background: var(--bg-secondary);
+    }
+    
+    .file-upload input {
+      display: none;
+    }
+    
+    .file-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+    
+    .file-text {
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .file-hint {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .alert {
+      padding: 1rem 1.25rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    
+    .alert-error {
+      background: #FEE2E2;
+      color: #991B1B;
+      border: 1px solid #FECACA;
+    }
+    
+    .alert-success {
+      background: #D1FAE5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+    }
+    
+    @media (max-width: 768px) {
+      .register-container {
+        padding: 2rem 1.5rem;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .specialties-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .level-selector {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo">🌿 Comfort Counsel</div>
-  <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
-    <span></span><span></span><span></span>
-  </button>
-  <div class="nav-links" id="nav-links">
-    <a href="index.html">Home</a>
-    <a href="find-counselor.html">Find Counselor</a>
-    <a href="register-counselor.html">Become a Counselor</a>
-    <a href="login.html">Login</a>
-  </div>
-</nav>
-
-<div class="form-page" style="background:var(--light);padding:3rem 1rem;">
-  <div class="form-card" style="max-width:600px;">
-    <h2>Become a Counselor</h2>
-    <p class="form-sub">Join our platform and help Ghana's youth. Your application will be reviewed within 24–48 hours.</p>
-
-    <div id="alert"></div>
-
-    <form id="counselor-form">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="name">Full Name *</label>
-          <input type="text" id="name" placeholder="Your full name" required />
-        </div>
-        <div class="form-group">
-          <label for="email">Email Address *</label>
-          <input type="email" id="email" placeholder="you@example.com" required />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="password">Password *</label>
-          <input type="password" id="password" placeholder="Min. 6 characters" required minlength="6" />
-        </div>
-        <div class="form-group">
-          <label for="phone">Phone Number *</label>
-          <input type="tel" id="phone" placeholder="0XX XXX XXXX" required />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="location">Location</label>
-          <input type="text" id="location" placeholder="City, Region" />
-        </div>
-        <div class="form-group">
-          <label for="years">Years of Experience</label>
-          <input type="number" id="years" placeholder="e.g. 3" min="0" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="category">Counseling Category *</label>
-        <select id="category" required>
-          <option value="">Select a category</option>
-          <option>Youth Life Counseling</option>
-          <option>Relationship Counseling</option>
-          <option>Career Counseling</option>
-          <option>Mental Wellness Support</option>
-          <option>Family Counseling</option>
-          <option>Business & Startup Advice</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="bio">Short Bio *</label>
-        <textarea id="bio" placeholder="Tell clients about your background, approach, and what you specialize in..." required></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%">Submit Application</button>
-    </form>
-
-    <div class="form-footer">
-      Already registered? <a href="login.html">Login here</a>
+<div class="register-page">
+  <div class="register-container">
+    
+    <!-- Header -->
+    <div class="register-header">
+      <div class="register-logo">🌿</div>
+      <h1 class="register-title">Become a Counselor</h1>
+      <p class="register-subtitle">Join our platform and help people while building your practice</p>
     </div>
+    
+    <!-- Steps Indicator -->
+    <div class="steps-indicator">
+      <div class="step-dot active" data-step="1"></div>
+      <div class="step-dot" data-step="2"></div>
+      <div class="step-dot" data-step="3"></div>
+      <div class="step-dot" data-step="4"></div>
+    </div>
+    
+    <!-- Alert -->
+    <div class="alert alert-error" id="error-alert">
+      <span id="error-message"></span>
+    </div>
+    
+    <!-- Registration Form -->
+    <form id="counselor-register-form">
+      
+      <!-- Step 1: Personal Information -->
+      <div class="form-section active" data-section="1">
+        <h2 class="section-title">Personal Information</h2>
+        <p class="section-subtitle">Tell us about yourself</p>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name <span class="required">*</span></label>
+            <input type="text" class="form-input" id="first-name" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Last Name <span class="required">*</span></label>
+            <input type="text" class="form-input" id="last-name" required />
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Email Address <span class="required">*</span></label>
+          <input type="email" class="form-input" id="email" required />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Phone Number <span class="required">*</span></label>
+          <input type="tel" class="form-input" id="phone" required />
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Password <span class="required">*</span></label>
+            <div style="position: relative;">
+              <input 
+                type="password" 
+                class="form-input" 
+                id="password" 
+                required 
+                style="padding-right: 3rem;"
+              />
+              <button 
+                type="button" 
+                id="toggle-password"
+                style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--text-muted); padding: 0.5rem;"
+                title="Show/hide password"
+              >
+                👁️
+              </button>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Confirm Password <span class="required">*</span></label>
+            <div style="position: relative;">
+              <input 
+                type="password" 
+                class="form-input" 
+                id="confirm-password" 
+                required 
+                style="padding-right: 3rem;"
+              />
+              <button 
+                type="button" 
+                id="toggle-confirm-password"
+                style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--text-muted); padding: 0.5rem;"
+                title="Show/hide password"
+              >
+                👁️
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 2: Professional Details -->
+      <div class="form-section" data-section="2">
+        <h2 class="section-title">Professional Details</h2>
+        <p class="section-subtitle">Share your expertise and qualifications</p>
+        
+        <div class="form-group">
+          <label class="form-label">Professional Title <span class="required">*</span></label>
+          <input type="text" class="form-input" id="title" placeholder="e.g., Licensed Counselor, PhD Clinical Psychology" required />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Years of Experience <span class="required">*</span></label>
+          <select class="form-select" id="experience" required>
+            <option value="">Select years</option>
+            <option value="0-2">0-2 years</option>
+            <option value="3-5">3-5 years</option>
+            <option value="6-10">6-10 years</option>
+            <option value="10+">10+ years</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Education <span class="required">*</span></label>
+          <input type="text" class="form-input" id="education" placeholder="e.g., PhD in Clinical Psychology, University of Ghana" required />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">License/Certification Number</label>
+          <input type="text" class="form-input" id="license" placeholder="Optional" />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">About Me <span class="required">*</span></label>
+          <textarea class="form-textarea" id="bio" placeholder="Tell clients about your approach, experience, and what makes you unique..." required></textarea>
+          <p class="form-help">Minimum 100 characters</p>
+        </div>
+      </div>
+      
+      <!-- Step 3: Specializations & Pricing -->
+      <div class="form-section" data-section="3">
+        <h2 class="section-title">Specializations & Pricing</h2>
+        <p class="section-subtitle">Choose your areas of expertise and set your rates</p>
+        
+        <div class="form-group">
+          <label class="form-label">Specializations <span class="required">*</span></label>
+          <p class="form-help" style="margin-bottom: 1rem;">Select at least 2 specializations</p>
+          <div class="specialties-grid">
+            <div class="specialty-checkbox">
+              <input type="checkbox" name="specialty" value="relationship" id="spec-relationship" />
+              <label for="spec-relationship">Relationship Counseling</label>
+            </div>
+            <div class="specialty-checkbox">
+              <input type="checkbox" name="specialty" value="family" id="spec-family" />
+              <label for="spec-family">Family Counseling</label>
+            </div>
+            <div class="specialty-checkbox">
+              <input type="checkbox" name="specialty" value="career" id="spec-career" />
+              <label for="spec-career">Career Counseling</label>
+            </div>
+            <div class="specialty-checkbox">
+              <input type="checkbox" name="specialty" value="youth" id="spec-youth" />
+              <label for="spec-youth">Youth Life Counseling</label>
+            </div>
+            <div class="specialty-checkbox">
+              <input type="checkbox" name="specialty" value="mental-wellness" id="spec-mental" />
+              <label for="spec-mental">Mental Wellness</label>
+            </div>
+            <div class="specialty-checkbox">
+              <input type="checkbox" name="specialty" value="business" id="spec-business" />
+              <label for="spec-business">Business & Startup</label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Choose Your Level <span class="required">*</span></label>
+          <p class="form-help" style="margin-bottom: 1rem;">Start with Basic (free) and upgrade later</p>
+          <div class="level-selector">
+            <div class="level-option selected" data-level="basic">
+              <input type="radio" name="level" value="basic" id="level-basic" checked />
+              <div class="level-icon">🥉</div>
+              <div class="level-name">Basic</div>
+              <div class="level-price">Free • Max GHS 100</div>
+            </div>
+            <div class="level-option" data-level="standard">
+              <input type="radio" name="level" value="standard" id="level-standard" />
+              <div class="level-icon">🥈</div>
+              <div class="level-name">Standard</div>
+              <div class="level-price">Paid • Max GHS 250</div>
+            </div>
+            <div class="level-option" data-level="premium">
+              <input type="radio" name="level" value="premium" id="level-premium" />
+              <div class="level-icon">🥇</div>
+              <div class="level-name">Premium</div>
+              <div class="level-price">Verified • Max GHS 400</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Session Price (GHS) <span class="required">*</span></label>
+          <input type="number" class="form-input" id="price" min="50" max="100" value="80" required />
+          <p class="form-help">Price per session. Basic level: GHS 50-100</p>
+        </div>
+      </div>
+      
+      <!-- Step 4: Documents & Verification -->
+      <div class="form-section" data-section="4">
+        <h2 class="section-title">Documents & Verification</h2>
+        <p class="section-subtitle">Upload your credentials for verification</p>
+        
+        <div class="form-group">
+          <label class="form-label">Profile Photo <span class="required">*</span></label>
+          <div class="file-upload" id="photo-upload">
+            <input type="file" id="photo" accept="image/*" required />
+            <div class="file-icon">📷</div>
+            <div class="file-text">Click to upload profile photo</div>
+            <div class="file-hint">JPG, PNG or GIF (max 5MB)</div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Verification Documents</label>
+          <div class="file-upload" id="docs-upload">
+            <input type="file" id="documents" accept=".pdf,.jpg,.png" multiple />
+            <div class="file-icon">📄</div>
+            <div class="file-text">Upload license, certificates, or credentials</div>
+            <div class="file-hint">PDF, JPG or PNG (max 10MB total)</div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Introduction Video (Optional)</label>
+          <input type="url" class="form-input" id="video-url" placeholder="YouTube or Vimeo link" />
+          <p class="form-help">A short video introducing yourself to potential clients</p>
+        </div>
+        
+        <div class="form-group">
+          <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+            <input type="checkbox" id="terms" required style="width: 20px; height: 20px; margin-top: 0.125rem; accent-color: var(--primary); cursor: pointer;" />
+            <label for="terms" style="cursor: pointer; color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.5;">
+              I agree to the <a href="#" style="color: var(--primary); font-weight: 600; text-decoration: underline;">Terms of Service</a>, 
+              <a href="#" style="color: var(--primary); font-weight: 600; text-decoration: underline;">Privacy Policy</a>, and 
+              <a href="#" style="color: var(--primary); font-weight: 600; text-decoration: underline;">Counselor Guidelines</a>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" id="prev-btn" style="display: none;">Previous</button>
+        <button type="button" class="btn btn-primary" id="next-btn" style="flex: 1;">Next</button>
+        <button type="submit" class="btn btn-primary" id="submit-btn" style="flex: 1; display: none;">Submit Application</button>
+      </div>
+      
+    </form>
+    
+    <!-- Footer Link -->
+    <div style="text-align: center; margin-top: 2rem; color: var(--text-secondary); font-size: 0.9375rem;">
+      Already have an account? 
+      <a href="login.html" style="color: var(--primary); font-weight: 600;">Sign in</a>
+    </div>
+    
   </div>
 </div>
 
 <script>
-  document.getElementById('counselor-form').addEventListener('submit', async e => {
-    e.preventDefault();
-    const btn = e.target.querySelector('button[type=submit]');
-    btn.disabled = true; btn.textContent = 'Submitting...';
-    const alertEl = document.getElementById('alert');
+let currentStep = 1;
+const totalSteps = 4;
 
-    const body = {
-      name: document.getElementById('name').value.trim(),
+// Level selector
+document.querySelectorAll('.level-option').forEach(option => {
+  option.addEventListener('click', () => {
+    document.querySelectorAll('.level-option').forEach(opt => opt.classList.remove('selected'));
+    option.classList.add('selected');
+    option.querySelector('input').checked = true;
+    
+    // Update price limits
+    const level = option.dataset.level;
+    const priceInput = document.getElementById('price');
+    if (level === 'basic') {
+      priceInput.max = 100;
+      priceInput.value = Math.min(priceInput.value, 100);
+    } else if (level === 'standard') {
+      priceInput.max = 250;
+    } else if (level === 'premium') {
+      priceInput.max = 400;
+    }
+  });
+});
+
+// File upload styling
+document.querySelectorAll('.file-upload').forEach(upload => {
+  const input = upload.querySelector('input[type="file"]');
+  upload.addEventListener('click', () => input.click());
+  
+  input.addEventListener('change', (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      const fileText = upload.querySelector('.file-text');
+      fileText.textContent = files.length === 1 ? files[0].name : `${files.length} files selected`;
+      upload.style.borderColor = 'var(--success)';
+      upload.style.background = '#D1FAE5';
+    }
+  });
+});
+
+// Password visibility toggle
+document.getElementById('toggle-password').addEventListener('click', function() {
+  const passwordInput = document.getElementById('password');
+  const type = passwordInput.type === 'password' ? 'text' : 'password';
+  passwordInput.type = type;
+  this.textContent = type === 'password' ? '👁️' : '🙈';
+});
+
+document.getElementById('toggle-confirm-password').addEventListener('click', function() {
+  const confirmPasswordInput = document.getElementById('confirm-password');
+  const type = confirmPasswordInput.type === 'password' ? 'text' : 'password';
+  confirmPasswordInput.type = type;
+  this.textContent = type === 'password' ? '👁️' : '🙈';
+});
+
+// Navigation
+document.getElementById('next-btn').addEventListener('click', () => {
+  if (validateStep(currentStep)) {
+    if (currentStep < totalSteps) {
+      currentStep++;
+      updateStep();
+    }
+  }
+});
+
+document.getElementById('prev-btn').addEventListener('click', () => {
+  if (currentStep > 1) {
+    currentStep--;
+    updateStep();
+  }
+});
+
+function updateStep() {
+  // Update sections
+  document.querySelectorAll('.form-section').forEach(section => {
+    section.classList.remove('active');
+  });
+  document.querySelector(`[data-section="${currentStep}"]`).classList.add('active');
+  
+  // Update dots
+  document.querySelectorAll('.step-dot').forEach((dot, index) => {
+    dot.classList.toggle('active', index + 1 === currentStep);
+  });
+  
+  // Update buttons
+  document.getElementById('prev-btn').style.display = currentStep === 1 ? 'none' : 'block';
+  document.getElementById('next-btn').style.display = currentStep === totalSteps ? 'none' : 'block';
+  document.getElementById('submit-btn').style.display = currentStep === totalSteps ? 'block' : 'none';
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function validateStep(step) {
+  const errorAlert = document.getElementById('error-alert');
+  const errorMessage = document.getElementById('error-message');
+  
+  errorAlert.style.display = 'none';
+  
+  if (step === 1) {
+    const firstName = document.getElementById('first-name').value.trim();
+    const lastName = document.getElementById('last-name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    if (!firstName || !lastName || !email || !phone || !password || !confirmPassword) {
+      errorMessage.textContent = 'Please fill in all required fields';
+      errorAlert.style.display = 'block';
+      return false;
+    }
+    
+    if (password !== confirmPassword) {
+      errorMessage.textContent = 'Passwords do not match';
+      errorAlert.style.display = 'block';
+      return false;
+    }
+    
+    if (password.length < 8) {
+      errorMessage.textContent = 'Password must be at least 8 characters';
+      errorAlert.style.display = 'block';
+      return false;
+    }
+  }
+  
+  if (step === 2) {
+    const title = document.getElementById('title').value.trim();
+    const experience = document.getElementById('experience').value;
+    const education = document.getElementById('education').value.trim();
+    const bio = document.getElementById('bio').value.trim();
+    
+    if (!title || !experience || !education || !bio) {
+      errorMessage.textContent = 'Please fill in all required fields';
+      errorAlert.style.display = 'block';
+      return false;
+    }
+    
+    if (bio.length < 100) {
+      errorMessage.textContent = 'Bio must be at least 100 characters';
+      errorAlert.style.display = 'block';
+      return false;
+    }
+  }
+  
+  if (step === 3) {
+    const specialties = document.querySelectorAll('input[name="specialty"]:checked');
+    const price = document.getElementById('price').value;
+    
+    if (specialties.length < 2) {
+      errorMessage.textContent = 'Please select at least 2 specializations';
+      errorAlert.style.display = 'block';
+      return false;
+    }
+    
+    if (!price || price < 50) {
+      errorMessage.textContent = 'Price must be at least GHS 50';
+      errorAlert.style.display = 'block';
+      return false;
+    }
+  }
+  
+  if (step === 4) {
+    const photo = document.getElementById('photo').files.length;
+    const terms = document.getElementById('terms').checked;
+    
+    if (!photo) {
+      errorMessage.textContent = 'Please upload a profile photo';
+      errorAlert.style.display = 'block';
+      return false;
+    }
+    
+    if (!terms) {
+      errorMessage.textContent = 'Please accept the terms and conditions';
+      errorAlert.style.display = 'block';
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+// Form submission
+document.getElementById('counselor-register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  if (!validateStep(4)) return;
+  
+  const submitBtn = document.getElementById('submit-btn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+  
+  // Collect form data
+  const formData = new FormData();
+  formData.append('firstName', document.getElementById('first-name').value);
+  formData.append('lastName', document.getElementById('last-name').value);
+  formData.append('email', document.getElementById('email').value);
+  formData.append('phone', document.getElementById('phone').value);
+  formData.append('password', document.getElementById('password').value);
+  formData.append('title', document.getElementById('title').value);
+  formData.append('experience', document.getElementById('experience').value);
+  formData.append('education', document.getElementById('education').value);
+  formData.append('license', document.getElementById('license').value);
+  formData.append('bio', document.getElementById('bio').value);
+  formData.append('price', document.getElementById('price').value);
+  formData.append('level', document.querySelector('input[name="level"]:checked').value);
+  formData.append('videoUrl', document.getElementById('video-url').value);
+  
+  // Specialties
+  const specialties = Array.from(document.querySelectorAll('input[name="specialty"]:checked')).map(cb => cb.value);
+  formData.append('specialties', JSON.stringify(specialties));
+  
+  // Files
+  const photo = document.getElementById('photo').files[0];
+  if (photo) formData.append('photo', photo);
+  
+  const docs = document.getElementById('documents').files;
+  for (let i = 0; i < docs.length; i++) {
+    formData.append('documents', docs[i]);
+  }
+  
+  try {
+    // Prepare registration data for counselor endpoint
+    const firstName = document.getElementById('first-name').value.trim();
+    const lastName = document.getElementById('last-name').value.trim();
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    const registrationData = {
+      name: fullName,
       email: document.getElementById('email').value.trim(),
       password: document.getElementById('password').value,
       phone_number: document.getElementById('phone').value.trim(),
-      location: document.getElementById('location').value.trim(),
-      years_experience: parseInt(document.getElementById('years').value) || 0,
-      category: document.getElementById('category').value,
-      bio: document.getElementById('bio').value.trim()
+      category: document.getElementById('title').value.trim(),
+      years_experience: parseInt(document.getElementById('experience').value) || 0,
+      bio: document.getElementById('bio').value.trim(),
+      location: '', // Can be added later in profile edit
+      education: document.getElementById('education').value.trim(),
+      license: document.getElementById('license').value.trim(),
+      level: document.querySelector('input[name="level"]:checked').value,
+      video_url: document.getElementById('video-url').value.trim() || null, // Optional
+      specialties: specialties,
+      price: parseFloat(document.getElementById('price').value) || 80
     };
-
-    try {
-      const res = await fetch('/api/counselors/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      alertEl.innerHTML = `<div class="alert alert-success">Application submitted! We'll review it within 24–48 hours and notify you by email.</div>`;
-      e.target.reset();
-    } catch (err) {
-      alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
-    } finally {
-      btn.disabled = false; btn.textContent = 'Submit Application';
+    
+    // Call counselor registration API
+    const response = await fetch('/api/counselors/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(registrationData)
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Registration failed');
     }
-  });
+    
+    // TODO: Upload files separately if needed
+    // const photoFile = document.getElementById('photo').files[0];
+    // const docFiles = document.getElementById('documents').files;
+    // if (photoFile || docFiles.length > 0) {
+    //   const uploadFormData = new FormData();
+    //   if (photoFile) uploadFormData.append('photo', photoFile);
+    //   for (let i = 0; i < docFiles.length; i++) {
+    //     uploadFormData.append('documents', docFiles[i]);
+    //   }
+    //   await fetch(`/api/counselors/${data.user.id}/upload`, {
+    //     method: 'POST',
+    //     body: uploadFormData
+    //   });
+    // }
+    
+    // Redirect to login with success message
+    window.location.href = 'login.html?registered=counselor';
+    
+  } catch (error) {
+    console.error('Registration error:', error);
+    const errorAlert = document.getElementById('error-alert');
+    const errorMessage = document.getElementById('error-message');
+    errorMessage.textContent = error.message || 'Registration failed. Please try again.';
+    errorAlert.style.display = 'block';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Application';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
 </script>
+
 </body>
 </html>
+

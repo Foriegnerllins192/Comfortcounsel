@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search Functionality Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .test-result {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .pass {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .fail {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    input {
+      padding: 10px;
+      width: 300px;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Search Functionality Test</h1>
+  
+  <div class="test-section">
+    <h2>Test 1: Search Button Click with Query</h2>
+    <input type="text" id="test-search-1" placeholder="Enter search query" value="relationship advice" />
+    <button class="search-btn" onclick="testSearchWithQuery()">Search</button>
+    <div id="result-1" class="test-result"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 2: Search Button Click without Query</h2>
+    <input type="text" id="test-search-2" placeholder="Leave empty" value="" />
+    <button class="search-btn" onclick="testSearchWithoutQuery()">Search</button>
+    <div id="result-2" class="test-result"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 3: Enter Key Press</h2>
+    <input type="text" class="search-input" id="test-search-3" placeholder="Type and press Enter" value="career guidance" />
+    <div id="result-3" class="test-result"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 4: Suggestion Tag Click</h2>
+    <button class="suggestion-tag" onclick="testSuggestionTag('Mental Health')">Mental Health</button>
+    <button class="suggestion-tag" onclick="testSuggestionTag('Family')">Family</button>
+    <div id="result-4" class="test-result"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 5: redirectToFindCounselors Function</h2>
+    <button onclick="testRedirectFunction()">Test Function</button>
+    <div id="result-5" class="test-result"></div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Override window.location.href to capture redirects
+    let capturedRedirect = null;
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: '',
+        get href() {
+          return this._href || '';
+        },
+        set href(value) {
+          capturedRedirect = value;
+          console.log('Redirect captured:', value);
+        }
+      },
+      writable: true
+    });
+
+    function testSearchWithQuery() {
+      const input = document.getElementById('test-search-1');
+      const result = document.getElementById('result-1');
+      
+      capturedRedirect = null;
+      ComfortCounsel.redirectToFindCounselors(input.value.trim());
+      
+      if (capturedRedirect === 'find-counselors.html?search=relationship%20advice') {
+        result.className = 'test-result pass';
+        result.textContent = '✓ PASS: Redirects to find-counselors.html?search=relationship%20advice';
+      } else {
+        result.className = 'test-result fail';
+        result.textContent = `✗ FAIL: Expected find-counselors.html?search=relationship%20advice, got ${capturedRedirect}`;
+      }
+    }
+
+    function testSearchWithoutQuery() {
+      const input = document.getElementById('test-search-2');
+      const result = document.getElementById('result-2');
+      
+      capturedRedirect = null;
+      ComfortCounsel.redirectToFindCounselors(input.value.trim());
+      
+      if (capturedRedirect === 'find-counselors.html') {
+        result.className = 'test-result pass';
+        result.textContent = '✓ PASS: Redirects to find-counselors.html (no query parameter)';
+      } else {
+        result.className = 'test-result fail';
+        result.textContent = `✗ FAIL: Expected find-counselors.html, got ${capturedRedirect}`;
+      }
+    }
+
+    function testSuggestionTag(query) {
+      const result = document.getElementById('result-4');
+      
+      capturedRedirect = null;
+      ComfortCounsel.redirectToFindCounselors(query);
+      
+      const expectedUrl = `find-counselors.html?search=${encodeURIComponent(query)}`;
+      if (capturedRedirect === expectedUrl) {
+        result.className = 'test-result pass';
+        result.textContent = `✓ PASS: Redirects to ${expectedUrl}`;
+      } else {
+        result.className = 'test-result fail';
+        result.textContent = `✗ FAIL: Expected ${expectedUrl}, got ${capturedRedirect}`;
+      }
+    }
+
+    function testRedirectFunction() {
+      const result = document.getElementById('result-5');
+      
+      if (typeof ComfortCounsel.redirectToFindCounselors === 'function') {
+        result.className = 'test-result pass';
+        result.textContent = '✓ PASS: redirectToFindCounselors function exists in ComfortCounsel namespace';
+      } else {
+        result.className = 'test-result fail';
+        result.textContent = '✗ FAIL: redirectToFindCounselors function not found';
+      }
+    }
+
+    // Test Enter key
+    document.getElementById('test-search-3').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const result = document.getElementById('result-3');
+        const input = e.target;
+        
+        capturedRedirect = null;
+        ComfortCounsel.redirectToFindCounselors(input.value.trim());
+        
+        if (capturedRedirect === 'find-counselors.html?search=career%20guidance') {
+          result.className = 'test-result pass';
+          result.textContent = '✓ PASS: Enter key triggers redirect to find-counselors.html?search=career%20guidance';
+        } else {
+          result.className = 'test-result fail';
+          result.textContent = `✗ FAIL: Expected find-counselors.html?search=career%20guidance, got ${capturedRedirect}`;
+        }
+      }
+    });
+
+    // Run automatic tests on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        testRedirectFunction();
+      }, 500);
+    });
+  </script>
+</body>
+</html>

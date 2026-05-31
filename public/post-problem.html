@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post a Problem - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .post-problem-section {
+      min-height: calc(100vh - 200px);
+      padding: 3rem 0;
+      background: var(--bg-secondary);
+    }
+    
+    .post-form-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 1rem;
+      padding: 2.5rem;
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .form-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    .form-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .form-header p {
+      color: var(--text-secondary);
+      font-size: 1.125rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+    
+    .form-label .required {
+      color: var(--danger);
+    }
+    
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+    
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .form-textarea {
+      resize: vertical;
+      min-height: 150px;
+    }
+    
+    .form-help {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.375rem;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      border: 2px solid var(--border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .checkbox-label:hover {
+      border-color: var(--primary);
+      background: var(--bg-secondary);
+    }
+    
+    .checkbox-label input {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    
+    .checkbox-content {
+      flex: 1;
+    }
+    
+    .checkbox-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+    
+    .checkbox-desc {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    
+    .budget-input-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .currency-prefix {
+      padding: 0.875rem 1rem;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    
+    .alert {
+      padding: 1rem 1.25rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    
+    .alert-success {
+      background: #D1FAE5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+    }
+    
+    .alert-error {
+      background: #FEE2E2;
+      color: #991B1B;
+      border: 1px solid #FECACA;
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .info-box {
+      background: var(--bg-secondary);
+      border-left: 4px solid var(--primary);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .info-box h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+    
+    .info-box ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .info-box li {
+      padding: 0.375rem 0;
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+    }
+    
+    .info-box li::before {
+      content: "✓ ";
+      color: var(--success);
+      font-weight: 700;
+      margin-right: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+      .post-form-container {
+        padding: 1.5rem;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+      }
+      
+      .form-actions .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">
+      <span class="logo-icon">🌿</span>
+      <span class="logo-text">Comfort Counsel</span>
+    </div>
+    
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    
+    <div class="nav-menu" id="nav-menu">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="find-counselors.html" class="nav-link">Find Counselors</a>
+      <a href="post-problem.html" class="nav-link active">Post a Problem</a>
+      <a href="my-sessions.html" class="nav-link" id="nav-sessions" style="display:none">My Sessions</a>
+      <a href="account.html" class="nav-link" id="nav-account" style="display:none">My Account</a>
+      <a href="login.html" class="nav-link-btn" id="nav-login">Login</a>
+      <a href="register.html" class="nav-link-btn btn-outline" id="nav-register">Sign Up</a>
+      <button class="nav-link-btn" id="nav-logout" style="display:none" onclick="ComfortCounsel.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- POST PROBLEM FORM -->
+<section class="post-problem-section">
+  <div class="container">
+    <div class="post-form-container">
+      
+      <div class="form-header">
+        <h1>Post Your Problem</h1>
+        <p>Describe your situation and let qualified counselors reach out to you</p>
+      </div>
+      
+      <!-- Alert Messages -->
+      <div class="alert alert-success" id="success-alert">
+        Problem posted successfully! Counselors will start responding soon.
+      </div>
+      
+      <div class="alert alert-error" id="error-alert">
+        <span id="error-message"></span>
+      </div>
+      
+      <!-- Info Box -->
+      <div class="info-box">
+        <h3>How it works:</h3>
+        <ul>
+          <li>Describe your problem in detail</li>
+          <li>Qualified counselors will review and respond</li>
+          <li>You'll receive applications within 24 hours</li>
+          <li>Choose the counselor that fits your needs</li>
+          <li>Book a session and get the support you need</li>
+        </ul>
+      </div>
+      
+      <!-- Form -->
+      <form id="post-problem-form">
+        
+        <!-- Title -->
+        <div class="form-group">
+          <label class="form-label">
+            Problem Title <span class="required">*</span>
+          </label>
+          <input 
+            type="text" 
+            class="form-input" 
+            id="problem-title"
+            placeholder="e.g., Need help with relationship communication"
+            required
+            maxlength="100"
+          />
+          <p class="form-help">Keep it brief and clear (max 100 characters)</p>
+        </div>
+        
+        <!-- Category -->
+        <div class="form-group">
+          <label class="form-label">
+            Category <span class="required">*</span>
+          </label>
+          <select class="form-select" id="problem-category" required>
+            <option value="">Select a category</option>
+            <option value="relationship">Relationship Counseling</option>
+            <option value="family">Family Counseling</option>
+            <option value="business">Business & Startup Advice</option>
+            <option value="youth">Youth Life Counseling</option>
+            <option value="career">Career Counseling</option>
+            <option value="mental-wellness">Mental Wellness Support</option>
+          </select>
+        </div>
+        
+        <!-- Description -->
+        <div class="form-group">
+          <label class="form-label">
+            Describe Your Situation <span class="required">*</span>
+          </label>
+          <textarea 
+            class="form-textarea" 
+            id="problem-description"
+            placeholder="Share as much detail as you're comfortable with. The more context you provide, the better counselors can understand how to help you."
+            required
+            minlength="50"
+          ></textarea>
+          <p class="form-help">Minimum 50 characters. Be specific about what you're struggling with.</p>
+        </div>
+        
+        <!-- What You Want -->
+        <div class="form-group">
+          <label class="form-label">
+            What are you looking for? <span class="required">*</span>
+          </label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="need" value="advice" />
+              <div class="checkbox-content">
+                <div class="checkbox-title">Professional Advice</div>
+                <div class="checkbox-desc">Get expert guidance and actionable solutions</div>
+              </div>
+            </label>
+            
+            <label class="checkbox-label">
+              <input type="checkbox" name="need" value="listener" />
+              <div class="checkbox-content">
+                <div class="checkbox-title">Someone to Listen</div>
+                <div class="checkbox-desc">A safe space to share your thoughts and feelings</div>
+              </div>
+            </label>
+            
+            <label class="checkbox-label">
+              <input type="checkbox" name="need" value="guidance" />
+              <div class="checkbox-content">
+                <div class="checkbox-title">Long-term Guidance</div>
+                <div class="checkbox-desc">Ongoing support to work through challenges</div>
+              </div>
+            </label>
+          </div>
+          <p class="form-help">Select all that apply</p>
+        </div>
+        
+        <!-- Budget -->
+        <div class="form-group">
+          <label class="form-label">
+            Budget per Session (Optional)
+          </label>
+          <div class="budget-input-group">
+            <span class="currency-prefix">GHS</span>
+            <input 
+              type="number" 
+              class="form-input" 
+              id="problem-budget"
+              placeholder="e.g., 150"
+              min="50"
+              max="400"
+              step="10"
+            />
+          </div>
+          <p class="form-help">Typical range: GHS 50 - 400. Leave blank if flexible.</p>
+        </div>
+        
+        <!-- Urgency -->
+        <div class="form-group">
+          <label class="form-label">
+            How urgent is this?
+          </label>
+          <select class="form-select" id="problem-urgency">
+            <option value="low">Not urgent - can wait a few days</option>
+            <option value="normal" selected>Moderate - would like help soon</option>
+            <option value="high">Urgent - need help as soon as possible</option>
+            <option value="urgent">Very urgent - need help immediately</option>
+          </select>
+        </div>
+        
+        <!-- Privacy Notice -->
+        <div class="info-box" style="background: #FEF3C7; border-left-color: var(--warning);">
+          <h3>🔒 Privacy & Safety</h3>
+          <ul>
+            <li>Your personal information is kept confidential</li>
+            <li>Only verified counselors can see your post</li>
+            <li>You choose who you want to work with</li>
+            <li>You can delete your post anytime</li>
+          </ul>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
+            Post Problem
+          </button>
+          <a href="find-counselors.html" class="btn btn-outline btn-lg">
+            Browse Counselors Instead
+          </a>
+        </div>
+        
+      </form>
+      
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3 class="footer-logo">🌿 Comfort Counsel</h3>
+        <p class="footer-description">Professional counseling marketplace connecting clients with verified counselors.</p>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">For Clients</h4>
+        <ul class="footer-links">
+          <li><a href="find-counselors.html">Find Counselors</a></li>
+          <li><a href="post-problem.html">Post a Problem</a></li>
+          <li><a href="#">How It Works</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">For Counselors</h4>
+        <ul class="footer-links">
+          <li><a href="register-counselor.html">Become a Counselor</a></li>
+          <li><a href="#">Pricing Plans</a></li>
+          <li><a href="#">Resources</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">Support</h4>
+        <ul class="footer-links">
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Safety & Trust</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2026 Comfort Counsel. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+// Require login to post a problem
+document.addEventListener('DOMContentLoaded', () => {
+  if (!ComfortCounsel.isAuthenticated()) {
+    window.location.href = 'login.html?redirect=post-problem.html';
+  }
+});
+
+document.getElementById('post-problem-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const successAlert = document.getElementById('success-alert');
+  const errorAlert = document.getElementById('error-alert');
+  const errorMessage = document.getElementById('error-message');
+  const submitBtn = e.target.querySelector('[type="submit"]');
+
+  successAlert.style.display = 'none';
+  errorAlert.style.display = 'none';
+
+  const title = document.getElementById('problem-title').value.trim();
+  const category = document.getElementById('problem-category').value;
+  const description = document.getElementById('problem-description').value.trim();
+  const budget = document.getElementById('problem-budget').value;
+  const urgency = document.getElementById('problem-urgency').value;
+  const needCheckboxes = document.querySelectorAll('input[name="need"]:checked');
+  const needs = Array.from(needCheckboxes).map(cb => cb.value);
+
+  // Validation
+  if (!title || !category || !description) {
+    errorMessage.textContent = 'Please fill in all required fields';
+    errorAlert.style.display = 'block';
+    errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  if (description.length < 50) {
+    errorMessage.textContent = 'Description must be at least 50 characters';
+    errorAlert.style.display = 'block';
+    return;
+  }
+
+  if (needs.length === 0) {
+    errorMessage.textContent = 'Please select at least one option for what you\'re looking for';
+    errorAlert.style.display = 'block';
+    return;
+  }
+
+  // Disable button while submitting
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Posting...';
+
+  try {
+    const response = await ComfortCounsel.apiRequest('/api/requests', {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        category,
+        description,
+        urgency,
+        budget: budget ? parseInt(budget) : null,
+        needs,
+        is_anonymous: false
+      })
+    });
+
+    // Show success
+    successAlert.textContent = '✅ Problem posted successfully! Counselors will be able to see and respond to it.';
+    successAlert.style.display = 'block';
+    successAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Reset form
+    e.target.reset();
+
+    // Redirect to my sessions after 2.5 seconds
+    setTimeout(() => {
+      window.location.href = 'my-sessions.html';
+    }, 2500);
+
+  } catch (error) {
+    errorMessage.textContent = error.message || 'Failed to post problem. Please try again.';
+    errorAlert.style.display = 'block';
+    errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Post Problem';
+  }
+});
+</script>
+
+</body>
+</html>
+

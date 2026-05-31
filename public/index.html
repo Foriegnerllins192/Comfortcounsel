@@ -299,6 +299,12 @@
 <script>
 // Load counselors from database on page load
 document.addEventListener('DOMContentLoaded', async () => {
+  // Wait for ComfortCounsel to be available
+  if (typeof ComfortCounsel === 'undefined') {
+    console.error('ComfortCounsel is not defined. Check if script.js loaded properly.');
+    return;
+  }
+  
   await loadRecommendedCounselors();
   await loadTopRatedCounselors();
   await checkActiveSession();
@@ -306,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Check for active session and show banner
 async function checkActiveSession() {
-  if (!ComfortCounsel.isAuthenticated()) return;
+  if (typeof ComfortCounsel === 'undefined' || !ComfortCounsel.isAuthenticated()) return;
   
   try {
     const data = await ComfortCounsel.apiRequest('/api/active-session');
@@ -353,6 +359,16 @@ function showActiveSessionBanner(session, hotline) {
 async function loadRecommendedCounselors() {
   const container = document.getElementById('recommended-counselors');
   
+  if (typeof ComfortCounsel === 'undefined') {
+    console.error('ComfortCounsel is not defined in loadRecommendedCounselors');
+    container.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+        <p style="color: var(--danger);">Error: ComfortCounsel library not loaded. Please refresh the page.</p>
+      </div>
+    `;
+    return;
+  }
+  
   try {
     const counselors = await ComfortCounsel.apiRequest('/api/counselors');
     
@@ -384,6 +400,16 @@ async function loadRecommendedCounselors() {
 // Load top rated counselors
 async function loadTopRatedCounselors() {
   const container = document.getElementById('top-rated-counselors');
+  
+  if (typeof ComfortCounsel === 'undefined') {
+    console.error('ComfortCounsel is not defined in loadTopRatedCounselors');
+    container.innerHTML = `
+      <div style="text-align: center; padding: 2rem;">
+        <p style="color: var(--danger);">Error: ComfortCounsel library not loaded. Please refresh the page.</p>
+      </div>
+    `;
+    return;
+  }
   
   try {
     const counselors = await ComfortCounsel.apiRequest('/api/counselors');
