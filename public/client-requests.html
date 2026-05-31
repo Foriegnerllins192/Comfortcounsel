@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Requests - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: var(--bg-secondary); }
+    .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .page-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .page-subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+    .filters-bar { background: white; border-radius: 1rem; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
+    .filter-group { flex: 1; min-width: 160px; }
+    .filter-label { display: block; font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.375rem; }
+    .filter-select { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.9375rem; background: white; cursor: pointer; }
+    .filter-select:focus { outline: none; border-color: var(--primary); }
+    .results-count { font-size: 0.9375rem; color: var(--text-secondary); margin-bottom: 1rem; }
+    .requests-grid { display: grid; gap: 1.25rem; }
+    .request-card { background: white; border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--border); transition: box-shadow 0.2s, transform 0.2s; }
+    .request-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .request-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.875rem; gap: 0.75rem; }
+    .request-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .cat-badge { padding: 0.3rem 0.75rem; border-radius: 1.5rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+    .cat-relationship { background: rgba(239,68,68,0.1); color: #DC2626; }
+    .cat-career { background: rgba(99,102,241,0.1); color: var(--primary); }
+    .cat-family { background: rgba(16,185,129,0.1); color: #059669; }
+    .cat-youth { background: rgba(245,158,11,0.1); color: #D97706; }
+    .cat-business { background: rgba(139,92,246,0.1); color: var(--secondary); }
+    .cat-mental-wellness, .cat-mental_wellness { background: rgba(236,72,153,0.1); color: #DB2777; }
+    .cat-default { background: rgba(107,114,128,0.1); color: #6B7280; }
+    .urgency-badge { padding: 0.25rem 0.625rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600; }
+    .urgency-urgent { background: var(--danger); color: white; }
+    .urgency-high { background: #F97316; color: white; }
+    .urgency-normal { background: var(--primary); color: white; }
+    .urgency-low { background: #6B7280; color: white; }
+    .request-time { font-size: 0.8125rem; color: var(--text-secondary); white-space: nowrap; }
+    .request-title { font-size: 1.125rem; font-weight: 700; margin-bottom: 0.625rem; color: var(--text-primary); }
+    .request-desc { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem; font-size: 0.9375rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .request-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border); gap: 1rem; flex-wrap: wrap; }
+    .client-info { display: flex; align-items: center; gap: 0.625rem; }
+    .client-avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); }
+    .client-name { font-weight: 600; font-size: 0.9375rem; }
+    .client-sub { font-size: 0.8125rem; color: var(--text-secondary); }
+    .request-actions { display: flex; gap: 0.625rem; }
+    .btn-view { padding: 0.5rem 1.125rem; background: white; color: var(--primary); border: 2px solid var(--primary); border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: var(--transition); }
+    .btn-view:hover { background: var(--primary); color: white; }
+    .empty-state { text-align: center; padding: 4rem 2rem; background: white; border-radius: 1rem; border: 1px solid var(--border); }
+    .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .empty-text { color: var(--text-secondary); }
+    /* Detail modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+    .modal-box { background: white; border-radius: 1rem; padding: 2rem; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; }
+    .modal-section { margin-bottom: 1.25rem; }
+    .modal-section-label { font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.375rem; }
+    .modal-section-value { font-size: 0.9375rem; color: var(--text-primary); line-height: 1.6; }
+    .modal-close { float: right; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); margin-top: -0.5rem; }
+    @media (max-width: 640px) { .request-footer { flex-direction: column; align-items: flex-start; } .request-actions { width: 100%; } .btn-view { flex: 1; } }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo"><span class="logo-icon">🌿</span><span class="logo-text">Comfort Counsel</span></div>
+    <button class="nav-toggle" id="nav-toggle"><span></span><span></span><span></span></button>
+    <div class="nav-menu" id="nav-menu">
+      <a href="counselor-dashboard.html" class="nav-link">Dashboard</a>
+      <a href="client-requests.html" class="nav-link active">Client Requests</a>
+      <a href="counselor-sessions.html" class="nav-link">My Sessions</a>
+      <a href="earnings.html" class="nav-link">Earnings</a>
+      <a href="counselor-profile-edit.html" class="nav-link">Edit Profile</a>
+      <button class="nav-link-btn" onclick="ComfortCounsel.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <h1 class="page-title">Client Requests</h1>
+  <p class="page-subtitle">Problems posted by clients — only open requests are shown</p>
+
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label class="filter-label">Category</label>
+      <select class="filter-select" id="filter-category" onchange="applyFilters()">
+        <option value="">All Categories</option>
+        <option value="relationship">Relationship</option>
+        <option value="career">Career</option>
+        <option value="family">Family</option>
+        <option value="youth">Youth</option>
+        <option value="business">Business</option>
+        <option value="mental-wellness">Mental Wellness</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Urgency</label>
+      <select class="filter-select" id="filter-urgency" onchange="applyFilters()">
+        <option value="">All Urgency</option>
+        <option value="urgent">Urgent</option>
+        <option value="high">High</option>
+        <option value="normal">Normal</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Sort By</label>
+      <select class="filter-select" id="filter-sort" onchange="applyFilters()">
+        <option value="recent">Most Recent</option>
+        <option value="urgent">Most Urgent</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="results-count" id="results-count"></div>
+  <div class="requests-grid" id="requests-grid">
+    <div style="text-align:center;padding:3rem;color:var(--text-secondary)">Loading requests...</div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal" style="display:none">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeDetailModal()">×</button>
+    <h2 class="modal-title" id="modal-title">Request Details</h2>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+let allRequests = [];
+
+if (!ComfortCounsel.requireAuth('login.html')) {
+  // redirecting
+} else {
+  const user = ComfortCounsel.getCurrentUser();
+  if (!user || user.role !== 'counselor') {
+    window.location.href = 'index.html';
+  } else {
+    loadRequests();
+  }
+}
+
+async function loadRequests() {
+  try {
+    allRequests = await ComfortCounsel.apiRequest('/api/counselors/client-requests?status=open');
+    applyFilters();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('requests-grid').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <h3 class="empty-title">Failed to load requests</h3>
+        <p class="empty-text">${err.message}</p>
+      </div>`;
+  }
+}
+
+function applyFilters() {
+  const cat = document.getElementById('filter-category').value.toLowerCase();
+  const urg = document.getElementById('filter-urgency').value.toLowerCase();
+  const sort = document.getElementById('filter-sort').value;
+
+  let filtered = [...allRequests];
+
+  if (cat) filtered = filtered.filter(r => r.category.toLowerCase().includes(cat));
+  if (urg) filtered = filtered.filter(r => r.urgency === urg);
+
+  if (sort === 'urgent') {
+    const urgOrder = { urgent: 0, high: 1, normal: 2, low: 3 };
+    filtered.sort((a, b) => (urgOrder[a.urgency] ?? 4) - (urgOrder[b.urgency] ?? 4));
+  } else {
+    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+
+  renderRequests(filtered);
+}
+
+function renderRequests(requests) {
+  const grid = document.getElementById('requests-grid');
+  const count = document.getElementById('results-count');
+  count.textContent = `${requests.length} request${requests.length !== 1 ? 's' : ''} found`;
+
+  if (!requests.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3 class="empty-title">No requests found</h3>
+        <p class="empty-text">No open client requests match your filters. Check back later.</p>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = requests.map(r => buildRequestCard(r)).join('');
+}
+
+// Helper function to get client avatar URL with profile picture support
+function getClientAvatarUrl(request) {
+  const clientName = request.is_anonymous ? 'Anonymous' : (request.display_name || request.client_name || 'Client');
+  
+  // For anonymous clients, never show profile pictures
+  if (request.is_anonymous) {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent('Anonymous')}&background=6366F1&color=fff&size=36`;
+  }
+  
+  // For non-anonymous clients, use their profile picture if available
+  if (request.profile_picture && request.profile_picture.trim()) {
+    return request.profile_picture;
+  }
+  
+  // Fallback to generated avatar
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(clientName)}&background=6366F1&color=fff&size=36`;
+}
+
+function buildRequestCard(r) {
+  const catKey = r.category.toLowerCase().replace(/\s+/g, '-');
+  const catClass = `cat-${catKey}`;
+  const urgClass = `urgency-${r.urgency}`;
+  const timeAgo = getTimeAgo(r.created_at);
+  const clientName = r.is_anonymous ? 'Anonymous' : (r.display_name || r.client_name || 'Client');
+  const excerpt = r.description.length > 200 ? r.description.substring(0, 200) + '...' : r.description;
+
+  return `
+    <div class="request-card">
+      <div class="request-header">
+        <div class="request-meta">
+          <span class="cat-badge ${catClass}">${r.category}</span>
+          <span class="urgency-badge ${urgClass}">${r.urgency}</span>
+        </div>
+        <span class="request-time">${timeAgo}</span>
+      </div>
+      <h3 class="request-title">${r.title}</h3>
+      <p class="request-desc">${excerpt}</p>
+      <div class="request-footer">
+        <div class="client-info">
+          <img src="${getClientAvatarUrl(r)}"
+               class="client-avatar" alt="${clientName}" />
+          <div>
+            <div class="client-name">${clientName}</div>
+            <div class="client-sub">Posted ${timeAgo}</div>
+          </div>
+        </div>
+        <div class="request-actions">
+          <button class="btn-view" onclick="openDetailModal(${r.id})">View Details</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function openDetailModal(requestId) {
+  const r = allRequests.find(req => req.id === requestId);
+  if (!r) return;
+
+  const clientName = r.is_anonymous ? 'Anonymous' : (r.display_name || r.client_name || 'Client');
+  document.getElementById('modal-title').textContent = r.title;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-section">
+      <div class="modal-section-label">Category</div>
+      <div class="modal-section-value">${r.category}</div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-label">Urgency</div>
+      <div class="modal-section-value">${r.urgency}</div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-label">Posted By</div>
+      <div class="modal-section-value">${clientName}</div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-label">Posted</div>
+      <div class="modal-section-value">${new Date(r.created_at).toLocaleString()}</div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-label">Full Description</div>
+      <div class="modal-section-value" style="white-space:pre-wrap">${r.description}</div>
+    </div>
+  `;
+  document.getElementById('detail-modal').style.display = 'flex';
+}
+
+function closeDetailModal() {
+  document.getElementById('detail-modal').style.display = 'none';
+}
+
+document.getElementById('detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDetailModal();
+});
+
+function getTimeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+</script>
+</body>
+</html>

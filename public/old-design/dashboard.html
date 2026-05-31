@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+  <script src="api.js"></script>
+  <style>
+    .wallet-card { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
+    .wallet-card .balance { font-size: 2.5rem; font-weight: 700; margin: .5rem 0; }
+    .wallet-card .label { opacity: .8; font-size: .9rem; }
+    .txn-type-credit { color: var(--success); font-weight: 600; }
+    .txn-type-debit { color: var(--danger); font-weight: 600; }
+    .profile-info { background: var(--white); border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 1.5rem; }
+    .profile-info .info-row { display: flex; justify-content: space-between; padding: .6rem 0; border-bottom: 1px solid var(--border); font-size: .95rem; }
+    .profile-info .info-row:last-child { border-bottom: none; }
+    .profile-info .info-label { color: var(--muted); font-weight: 600; }
+    .complete-btn { background: var(--success); color: #fff; border: none; padding: .35rem .85rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: .8rem; }
+    .complete-btn:hover { background: #2d8a5a; }
+
+    /* Crop modal */
+    #crop-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:9999; align-items:center; justify-content:center; }
+    #crop-modal.open { display:flex; }
+    #crop-modal .crop-box { background:#fff; border-radius:16px; padding:1.5rem; width:min(520px,95vw); display:flex; flex-direction:column; gap:1rem; }
+    #crop-modal h3 { margin:0; font-size:1.1rem; color:var(--primary); }
+    #crop-modal .crop-hint { font-size:.82rem; color:var(--muted); margin:0; }
+    #crop-container { width:100%; height:320px; overflow:hidden; background:#111; border-radius:10px; }
+    #crop-container img { max-width:100%; display:block; }
+    .crop-controls { display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center; }
+    .crop-controls button { padding:.4rem .9rem; border-radius:8px; border:1px solid var(--border); background:#f8f8f8; cursor:pointer; font-size:.85rem; font-weight:600; }
+    .crop-controls button:hover { background:var(--light); }
+    .crop-actions { display:flex; gap:.75rem; justify-content:flex-end; }
+  </style>
+</head>
+<body>
+<!-- Mobile top bar -->
+<div class="dash-topbar" id="dash-topbar">
+  <button class="dash-menu-btn" id="dash-menu-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topbar-logo">🌿 Comfort Counsel</div>
+</div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="dashboard">
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close" id="sidebar-close" aria-label="Close menu">✕</button>
+    <div class="sidebar-logo">🌿 Comfort Counsel</div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div style="padding-top:1.5rem;">
+      <button class="btn btn-outline" style="width:100%;color:white;border-color:rgba(255,255,255,.4)" onclick="logout()">Logout</button>
+    </div>
+  </aside>
+  <main class="main-content" id="main-content">
+    <p style="color:var(--muted)">Loading...</p>
+  </main>
+</div>
+
+<script>
+const token = localStorage.getItem('cc_token');
+const user = JSON.parse(localStorage.getItem('cc_user') || 'null');
+if (!token || !user) window.location.href = 'login.html';
+
+// Admins always use the dedicated admin panel
+if (user && user.role === 'admin') window.location.href = 'admin.html';
+
+function logout() {
+  localStorage.removeItem('cc_token');
+  localStorage.removeItem('cc_user');
+  window.location.href = 'index.html';
+}
+
+const h = () => ({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token });
+const api = (url, opts = {}) => apiFetch(url, opts);
+const fmt = d => new Date(d).toLocaleDateString();
+const badge = (s, map) => {
+  const cls = map?.[s] || (s === 'paid' || s === 'approved' || s === 'completed' || s === 'success' ? 'approved' : s === 'rejected' || s === 'failed' ? 'rejected' : 'pending');
+  return `<span class="badge badge-${cls}">${s}</span>`;
+};
+const main = document.getElementById('main-content');
+const nav = document.getElementById('sidebar-nav');
+
+// Build sidebar
+const role = user?.role;
+if (role === 'admin') {
+  nav.innerHTML = `
+    <a href="#" onclick="show('a-overview')">📊 Overview</a>
+    <a href="#" onclick="show('a-pending')">⏳ Pending Counselors</a>
+    <a href="#" onclick="show('a-users')">👥 Users</a>
+    <a href="#" onclick="show('a-sessions')">📅 Sessions</a>
+    <a href="#" onclick="show('a-payments')">💳 Payments</a>
+    <a href="#" onclick="show('a-wallet')">💰 My Wallet</a>
+    <a href="#" onclick="show('a-admins')">🔐 Manage Admins</a>
+  `;
+  show('a-overview');
+} else if (role === 'counselor') {
+  nav.innerHTML = `
+    <a href="#" onclick="show('c-overview')">📊 Overview</a>
+    <a href="#" onclick="show('c-sessions')">📅 My Sessions</a>
+    <a href="#" onclick="show('c-wallet')">💰 My Wallet</a>
+    <a href="#" onclick="show('c-profile')">✏️ My Profile</a>
+  `;
+  show('c-overview');
+} else {
+  nav.innerHTML = `
+    <a href="#" onclick="show('u-sessions')">📅 My Sessions</a>
+    <a href="#" onclick="show('u-profile')">👤 My Profile</a>
+    <a href="find-counselor.html">🔍 Find Counselor</a>
+  `;
+  show('u-sessions');
+}
+
+function setActive(section) {
+  nav.querySelectorAll('a').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('onclick')?.includes(`'${section}'`));
+  });
+}
+
+async function show(section) {
+  setActive(section);
+
+  // ── ADMIN ──
+  if (section === 'a-overview') {
+    const [users, sessions, payments] = await Promise.all([
+      api('/api/admin/users'), api('/api/admin/sessions'), api('/api/admin/payments')
+    ]);
+    const revenue = payments.filter(p => p.status === 'success').reduce((s, p) => s + parseFloat(p.amount), 0);
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">Admin Overview</h2>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value">${users.length}</div><div class="stat-label">Total Users</div></div>
+        <div class="stat-card"><div class="stat-value">${sessions.length}</div><div class="stat-label">Total Sessions</div></div>
+        <div class="stat-card"><div class="stat-value">GH₵${revenue.toFixed(2)}</div><div class="stat-label">Total Revenue</div></div>
+        <div class="stat-card"><div class="stat-value">${payments.filter(p=>p.status==='success').length}</div><div class="stat-label">Paid Sessions</div></div>
+      </div>`;
+  }
+
+  else if (section === 'a-pending') {
+    const data = await api('/api/admin/counselors/pending');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">Pending Applications</h2>
+      <div class="table-card"><table>
+        <thead><tr><th>Name</th><th>Email</th><th>Category</th><th>Phone</th><th>Exp.</th><th>Action</th></tr></thead>
+        <tbody>${data.map(c => `<tr>
+          <td>${c.name}</td><td>${c.email}</td><td>${c.category}</td>
+          <td>${c.phone_number}</td><td>${c.years_experience}y</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="reviewCounselor(${c.id},'approve')">Approve</button>
+            <button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;margin-left:.5rem" onclick="reviewCounselor(${c.id},'reject')">Reject</button>
+          </td></tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted)">No pending applications</td></tr>'}
+        </tbody>
+      </table></div>`;
+  }
+
+  else if (section === 'a-users') {
+    const data = await api('/api/admin/users');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">All Users</h2>
+      <div class="table-card"><table>
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+        <tbody>${data.map(u => `<tr>
+          <td>${u.name}</td><td>${u.email}</td>
+          <td>${badge(u.role)}</td>
+          <td>${fmt(u.created_at)}</td></tr>`).join('')}
+        </tbody>
+      </table></div>`;
+  }
+
+  else if (section === 'a-sessions') {
+    const data = await api('/api/admin/sessions');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">All Sessions</h2>
+      <div class="table-card"><table>
+        <thead><tr><th>User</th><th>Counselor</th><th>Category</th><th>Payment</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>${data.map(s => `<tr>
+          <td>${s.user_name}</td><td>${s.counselor_name}</td><td>${s.category}</td>
+          <td>${badge(s.payment_status)}</td><td>${badge(s.session_status)}</td>
+          <td>${fmt(s.created_at)}</td></tr>`).join('')}
+        </tbody>
+      </table></div>`;
+  }
+
+  else if (section === 'a-payments') {
+    const data = await api('/api/admin/payments');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">Payments</h2>
+      <div class="table-card"><table>
+        <thead><tr><th>User</th><th>Email</th><th>Amount</th><th>Reference</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>${data.map(p => `<tr>
+          <td>${p.user_name}</td><td>${p.email}</td><td>GH₵${parseFloat(p.amount).toFixed(2)}</td>
+          <td style="font-size:.8rem">${p.paystack_reference||'–'}</td>
+          <td>${badge(p.status)}</td><td>${fmt(p.created_at)}</td></tr>`).join('')}
+        </tbody>
+      </table></div>`;
+  }
+
+  else if (section === 'a-wallet') {
+    const data = await api('/api/admin/wallet');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">Admin Wallet</h2>
+      <div class="wallet-card">
+        <div class="label">Platform Earnings Balance</div>
+        <div class="balance">GH₵${parseFloat(data.balance).toFixed(2)}</div>
+        <div class="label">GH₵15 credited per completed session</div>
+      </div>
+      <div class="table-card"><h3 style="margin-bottom:1rem">Transaction History</h3>
+        <table>
+          <thead><tr><th>Description</th><th>Amount</th><th>Type</th><th>Date</th></tr></thead>
+          <tbody>${data.transactions.map(t => `<tr>
+            <td>${t.description}</td>
+            <td>GH₵${parseFloat(t.amount).toFixed(2)}</td>
+            <td class="txn-type-${t.type}">${t.type}</td>
+            <td>${fmt(t.created_at)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">No transactions yet</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  else if (section === 'a-admins') {
+    const data = await api('/api/admin/admins');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">Manage Admins</h2>
+      <div class="table-card" style="margin-bottom:1.5rem">
+        <h3 style="margin-bottom:1rem">Add New Admin</h3>
+        <div id="admin-alert"></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;align-items:end">
+          <div class="form-group" style="margin:0"><label>Name</label><input type="text" id="new-admin-name" placeholder="Full name" /></div>
+          <div class="form-group" style="margin:0"><label>Email</label><input type="email" id="new-admin-email" placeholder="email@example.com" /></div>
+          <div class="form-group" style="margin:0"><label>Password</label><input type="password" id="new-admin-pass" placeholder="Password" /></div>
+          <button class="btn btn-primary" onclick="addAdmin()">Add Admin</button>
+        </div>
+      </div>
+      <div class="table-card"><h3 style="margin-bottom:1rem">Current Admins</h3>
+        <table id="admins-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Action</th></tr></thead>
+          <tbody>${data.map(a => `<tr>
+            <td>${a.name}</td><td>${a.email}</td><td>${fmt(a.created_at)}</td>
+            <td>${a.id !== user.id ? `<button class="btn btn-sm" style="background:#fee2e2;color:#991b1b" onclick="removeAdmin(${a.id})">Remove</button>` : '<span style="color:var(--muted);font-size:.85rem">You</span>'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // ── COUNSELOR ──
+  else if (section === 'c-overview') {
+    const data = await api('/api/counselors/dashboard/me');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">Welcome, ${data.profile.name}</h2>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value">${data.total_sessions}</div><div class="stat-label">Total Sessions</div></div>
+        <div class="stat-card"><div class="stat-value">${data.sessions.filter(s=>s.session_status==='completed').length}</div><div class="stat-label">Completed</div></div>
+        <div class="stat-card"><div class="stat-value">${data.sessions.filter(s=>s.payment_status==='paid'&&s.session_status==='scheduled').length}</div><div class="stat-label">Awaiting Call</div></div>
+      </div>
+      <div class="table-card" style="margin-top:1.5rem"><h3 style="margin-bottom:1rem">Recent Sessions</h3>
+        <table>
+          <thead><tr><th>Client</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody>${data.sessions.slice(0,10).map(s => `<tr>
+            <td>${s.user_name}</td>
+            <td>${badge(s.payment_status)}</td>
+            <td>${badge(s.session_status)}</td>
+            <td>${fmt(s.created_at)}</td>
+            <td>${s.payment_status==='paid'&&s.session_status==='scheduled'
+              ? `<button class="complete-btn" onclick="completeSession(${s.id})">Mark Complete</button>`
+              : '–'}</td>
+            </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">No sessions yet</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  else if (section === 'c-sessions') {
+    const data = await api('/api/counselors/dashboard/me');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">My Sessions</h2>
+      <div class="table-card"><table>
+        <thead><tr><th>Client</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody>${data.sessions.map(s => `<tr>
+          <td>${s.user_name}</td>
+          <td>${badge(s.payment_status)}</td>
+          <td>${badge(s.session_status)}</td>
+          <td>${fmt(s.created_at)}</td>
+          <td>${s.payment_status==='paid'&&s.session_status==='scheduled'
+            ? `<button class="complete-btn" style="background:var(--primary);margin-right:.5rem" onclick="startSessionCall(${s.id})">📞 Start Call</button><button class="complete-btn" onclick="completeSession(${s.id})">✓ Mark Complete</button>`
+            : '–'}</td>
+          </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">No sessions yet</td></tr>'}
+        </tbody>
+      </table></div>`;
+  }
+
+  else if (section === 'c-wallet') {
+    const data = await api('/api/wallet');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">My Wallet</h2>
+      <div class="wallet-card">
+        <div class="label">Available Balance</div>
+        <div class="balance">GH₵${parseFloat(data.balance).toFixed(2)}</div>
+        <div class="label">GH₵35 credited per completed session</div>
+      </div>
+      <div class="table-card"><h3 style="margin-bottom:1rem">Transaction History</h3>
+        <table>
+          <thead><tr><th>Description</th><th>Amount</th><th>Type</th><th>Date</th></tr></thead>
+          <tbody>${data.transactions.map(t => `<tr>
+            <td>${t.description}</td>
+            <td>GH₵${parseFloat(t.amount).toFixed(2)}</td>
+            <td class="txn-type-${t.type}">${t.type}</td>
+            <td>${fmt(t.created_at)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">No transactions yet</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  else if (section === 'c-profile') {
+    const data = await api('/api/counselors/dashboard/me');
+    const p = data.profile;
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">My Profile</h2>
+      <div id="profile-alert"></div>
+
+      <div class="profile-info" style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.5rem">
+        <div style="text-align:center">
+          <img id="profile-pic-preview"
+            src="${p.profile_picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.name) + '&background=2E7D6B&color=fff&size=200'}"
+            alt="Profile picture"
+            style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);display:block;margin:0 auto .75rem" />
+          <label style="cursor:pointer;font-size:.85rem;color:var(--primary);font-weight:600">
+            📷 Change Photo
+            <input type="file" id="pic-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadPicture(this)" />
+          </label>
+          <div id="pic-alert" style="font-size:.8rem;margin-top:.4rem"></div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div class="info-row"><span class="info-label">Name</span><span>${p.name}</span></div>
+          <div class="info-row"><span class="info-label">Email</span><span>${p.email}</span></div>
+          <div class="info-row"><span class="info-label">Category</span><span>${p.category}</span></div>
+          <div class="info-row"><span class="info-label">Status</span><span>${badge(p.status)}</span></div>
+          <div class="info-row" style="align-items:center;gap:1rem">
+            <span class="info-label">Availability</span>
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;margin:0">
+              <input type="checkbox" id="availability-toggle" ${p.is_available ? 'checked' : ''} onchange="toggleAvailability()" style="width:18px;height:18px;cursor:pointer" />
+              <span id="availability-text" style="font-weight:600;color:${p.is_available ? 'var(--success)' : 'var(--danger)'}">${p.is_available ? '● Available' : '● Unavailable'}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card" style="max-width:500px;box-shadow:none;padding:0">
+        <h3 style="margin-bottom:1rem">Edit Details</h3>
+        <div class="form-group"><label>Name</label><input type="text" id="edit-name" value="${p.name}" /></div>
+        <div class="form-group"><label>Phone Number</label><input type="text" id="edit-phone" value="${p.phone_number||''}" /></div>
+        <div class="form-group"><label>Location</label><input type="text" id="edit-location" value="${p.location||''}" /></div>
+        <div class="form-group"><label>Years of Experience</label><input type="number" id="edit-years" value="${p.years_experience||0}" /></div>
+        <div class="form-group"><label>Bio</label><textarea id="edit-bio">${p.bio||''}</textarea></div>
+        <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+        <h3 style="margin:1.5rem 0 1rem">Change Password</h3>
+        <div id="pw-alert"></div>
+        <div class="form-group"><label>Current Password</label><input type="password" id="cur-pw" /></div>
+        <div class="form-group"><label>New Password</label><input type="password" id="new-pw" /></div>
+        <button class="btn btn-outline" onclick="changePassword()">Update Password</button>
+      </div>`;
+  }
+
+  // ── USER ──
+  else if (section === 'u-sessions') {
+    const data = await api('/api/my-sessions');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">My Sessions</h2>
+      <div style="margin-bottom:1.5rem"><a href="find-counselor.html" class="btn btn-primary">+ Book New Session</a></div>
+      <div class="table-card"><table>
+        <thead><tr><th>Counselor</th><th>Category</th><th>Payment</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>${data.map(s => `<tr>
+          <td>${s.counselor_name}</td><td>${s.category}</td>
+          <td>${badge(s.payment_status)}</td>
+          <td>${badge(s.session_status)}</td>
+          <td>${fmt(s.created_at)}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">No sessions yet. <a href="find-counselor.html">Book one now</a></td></tr>'}
+        </tbody>
+      </table></div>`;
+  }
+
+  else if (section === 'u-profile') {
+    const p = await api('/api/profile');
+    main.innerHTML = `
+      <h2 style="margin-bottom:1.5rem">My Profile</h2>
+      <div id="profile-alert"></div>
+      <div class="profile-info">
+        <div class="info-row"><span class="info-label">Name</span><span>${p.name}</span></div>
+        <div class="info-row"><span class="info-label">Email</span><span>${p.email}</span></div>
+        <div class="info-row"><span class="info-label">Role</span><span>${badge(p.role)}</span></div>
+        <div class="info-row"><span class="info-label">Member Since</span><span>${fmt(p.created_at)}</span></div>
+      </div>
+      <div class="form-card" style="max-width:500px;box-shadow:none;padding:0">
+        <h3 style="margin-bottom:1rem">Change Password</h3>
+        <div id="pw-alert"></div>
+        <div class="form-group"><label>Current Password</label><input type="password" id="cur-pw" /></div>
+        <div class="form-group"><label>New Password</label><input type="password" id="new-pw" /></div>
+        <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+      </div>`;
+  }
+}
+
+// Actions
+async function reviewCounselor(id, action) {
+  await api(`/api/admin/counselors/${id}`, { method: 'PATCH', body: JSON.stringify({ action }) });
+  show('a-pending');
+}
+
+async function addAdmin() {
+  const name = document.getElementById('new-admin-name').value;
+  const email = document.getElementById('new-admin-email').value;
+  const password = document.getElementById('new-admin-pass').value;
+  const alertEl = document.getElementById('admin-alert');
+  try {
+    const res = await fetch('/api/admin/admins', { method: 'POST', headers: h(), body: JSON.stringify({ name, email, password }) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    alertEl.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+    show('a-admins');
+  } catch (err) {
+    alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+  }
+}
+
+async function removeAdmin(id) {
+  if (!confirm('Remove this admin?')) return;
+  await api(`/api/admin/admins/${id}`, { method: 'DELETE' });
+  show('a-admins');
+}
+
+async function completeSession(sessionId) {
+  if (!confirm('Mark this session as complete? GH₵35 will be credited to your wallet.')) return;
+  try {
+    const data = await apiFetch(`/api/sessions/${sessionId}/complete`, { method: 'PATCH' });
+    alert(data.message);
+    show('c-sessions');
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function startSessionCall(sessionId) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '📞 Calling...';
+  try {
+    const data = await apiFetch('/api/start-session-call', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId })
+    });
+    alert(`✅ Call initiated!\n\nHotline: ${data.hotline}\n\nThe client will receive a call shortly.`);
+    show('c-sessions');
+  } catch (err) {
+    alert('❌ Failed to start call: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = '📞 Start Call';
+  }
+}
+
+async function saveProfile() {
+  try {
+    const data = await apiFetch('/api/counselors/profile/me', {
+      method: 'PUT',
+      body: JSON.stringify({
+        name: document.getElementById('edit-name').value,
+        phone_number: document.getElementById('edit-phone').value,
+        bio: document.getElementById('edit-bio').value,
+        location: document.getElementById('edit-location').value,
+        years_experience: parseInt(document.getElementById('edit-years').value) || 0
+      })
+    });
+    document.getElementById('profile-alert').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+  } catch (err) {
+    document.getElementById('profile-alert').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+  }
+}
+
+let cropperInst = null;
+
+function openCropModal(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = document.getElementById('crop-image');
+    img.src = e.target.result;
+    document.getElementById('crop-modal').classList.add('open');
+
+    // Destroy previous instance if any
+    if (cropperInst) { cropperInst.destroy(); cropperInst = null; }
+
+    cropperInst = new Cropper(img, {
+      aspectRatio: 1,           // square crop — perfect for profile pics
+      viewMode: 1,              // restrict crop box within canvas
+      dragMode: 'move',         // drag the image, not the crop box
+      autoCropArea: 0.85,
+      responsive: true,
+      restore: false,
+      guides: true,
+      center: true,
+      highlight: false,
+      cropBoxMovable: false,    // keep crop box fixed, user moves the image
+      cropBoxResizable: false,
+      toggleDragModeOnDblclick: false,
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function closeCropModal() {
+  document.getElementById('crop-modal').classList.remove('open');
+  if (cropperInst) { cropperInst.destroy(); cropperInst = null; }
+  // Reset the file input so the same file can be re-selected
+  const input = document.getElementById('pic-input');
+  if (input) input.value = '';
+}
+
+async function saveCroppedPhoto() {
+  if (!cropperInst) return;
+  const btn = document.getElementById('save-crop-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const picAlert = document.getElementById('pic-alert');
+
+  try {
+    // Get cropped canvas at 400×400
+    const canvas = cropperInst.getCroppedCanvas({ width: 400, height: 400, imageSmoothingQuality: 'high' });
+
+    // Convert canvas to Blob then upload
+    canvas.toBlob(async function(blob) {
+      const formData = new FormData();
+      formData.append('profile_picture', blob, 'profile.jpg');
+
+      try {
+        const res = await fetch('/api/counselors/profile/picture', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        // Update preview with the cropped result
+        document.getElementById('profile-pic-preview').src = canvas.toDataURL('image/jpeg');
+        picAlert.innerHTML = '<span style="color:var(--success)">✓ Photo updated</span>';
+        closeCropModal();
+      } catch (err) {
+        picAlert.innerHTML = '<span style="color:var(--danger)">' + err.message + '</span>';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Save Photo';
+      }
+    }, 'image/jpeg', 0.9);
+  } catch (err) {
+    picAlert.innerHTML = '<span style="color:var(--danger)">' + err.message + '</span>';
+    btn.disabled = false; btn.textContent = 'Save Photo';
+  }
+}
+
+function uploadPicture(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowed.includes(file.type)) {
+    document.getElementById('pic-alert').innerHTML = '<span style="color:var(--danger)">Only JPEG, PNG or WebP allowed.</span>';
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    document.getElementById('pic-alert').innerHTML = '<span style="color:var(--danger)">File must be under 5MB.</span>';
+    return;
+  }
+
+  openCropModal(file);
+}
+
+async function changePassword() {
+  const alertEl = document.getElementById('pw-alert');
+  try {
+    const data = await apiFetch('/api/change-password', {
+      method: 'PUT',
+      body: JSON.stringify({
+        current_password: document.getElementById('cur-pw').value,
+        new_password: document.getElementById('new-pw').value
+      })
+    });
+    alertEl.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+    document.getElementById('cur-pw').value = '';
+    document.getElementById('new-pw').value = '';
+  } catch (err) {
+    alertEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+  }
+}
+
+async function toggleAvailability() {
+  const toggle = document.getElementById('availability-toggle');
+  const text = document.getElementById('availability-text');
+  const isAvailable = toggle.checked;
+  
+  try {
+    const data = await apiFetch('/api/counselors/availability', {
+      method: 'PUT',
+      body: JSON.stringify({ is_available: isAvailable })
+    });
+    
+    text.textContent = isAvailable ? '● Available' : '● Unavailable';
+    text.style.color = isAvailable ? 'var(--success)' : 'var(--danger)';
+    document.getElementById('profile-alert').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+    
+    // Broadcast to other tabs/windows AND trigger same-tab update
+    const updateEvent = new CustomEvent('counselor-availability-changed', {
+      detail: { isAvailable: isAvailable, timestamp: Date.now() }
+    });
+    window.dispatchEvent(updateEvent);
+    localStorage.setItem('counselor_availability_updated', Date.now().toString());
+  } catch (err) {
+    toggle.checked = !isAvailable;
+    document.getElementById('profile-alert').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+  }
+}
+
+// Mobile sidebar toggle
+(function() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const openBtn = document.getElementById('dash-menu-btn');
+  const closeBtn = document.getElementById('sidebar-close');
+  function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('open'); }
+  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+  openBtn.addEventListener('click', openSidebar);
+  closeBtn.addEventListener('click', closeSidebar);
+  overlay.addEventListener('click', closeSidebar);
+  // Close sidebar on nav link click (mobile)
+  document.getElementById('sidebar-nav').addEventListener('click', e => {
+    if (e.target.tagName === 'A' && window.innerWidth <= 768) closeSidebar();
+  });
+})();
+</script>
+<!-- Image crop modal -->
+<div id="crop-modal">
+  <div class="crop-box">
+    <h3>📷 Position Your Photo</h3>
+    <p class="crop-hint">Drag to reposition · Pinch or scroll to zoom · Use buttons to rotate/flip</p>
+    <div id="crop-container"><img id="crop-image" src="" alt="crop" /></div>
+    <div class="crop-controls">
+      <button onclick="cropperInst.rotate(-90)" title="Rotate left">↺ Left</button>
+      <button onclick="cropperInst.rotate(90)" title="Rotate right">↻ Right</button>
+      <button onclick="cropperInst.scaleX(cropperInst.getData().scaleX===-1?1:-1)" title="Flip horizontal">⇄ Flip H</button>
+      <button onclick="cropperInst.scaleY(cropperInst.getData().scaleY===-1?1:-1)" title="Flip vertical">⇅ Flip V</button>
+      <button onclick="cropperInst.zoom(0.1)">＋ Zoom</button>
+      <button onclick="cropperInst.zoom(-0.1)">－ Zoom</button>
+      <button onclick="cropperInst.reset()">↺ Reset</button>
+    </div>
+    <div class="crop-actions">
+      <button class="btn btn-outline" onclick="closeCropModal()">Cancel</button>
+      <button class="btn btn-primary" id="save-crop-btn" onclick="saveCroppedPhoto()">Save Photo</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+</body>
+</html>

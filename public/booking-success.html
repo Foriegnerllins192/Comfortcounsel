@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Confirmed - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .success-page {
+      background: var(--bg-secondary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .success-container {
+      max-width: 560px;
+      width: 100%;
+    }
+
+    .success-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 3rem 2.5rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #10B981, #059669);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin: 0 auto 1.5rem;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .success-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Hotline display */
+    .hotline-section {
+      background: linear-gradient(135deg, #EEF2FF, #E0E7FF);
+      border: 2px solid #6366F1;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .hotline-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #6366F1;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .hotline-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: 3px;
+      margin-bottom: 0.75rem;
+    }
+
+    .hotline-hint {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .call-now-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #10B981;
+      color: white;
+      padding: 0.875rem 2rem;
+      border-radius: 3rem;
+      font-size: 1.125rem;
+      font-weight: 700;
+      text-decoration: none;
+      margin-top: 1rem;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .call-now-btn:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+
+    /* Session info */
+    .session-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+
+    .session-info-item {
+      background: var(--bg-secondary);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+
+    .session-info-label {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .session-info-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Timer */
+    .timer-section {
+      background: #FEF3C7;
+      border: 1px solid #F59E0B;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .timer-icon { font-size: 1.5rem; }
+
+    .timer-text {
+      text-align: left;
+    }
+
+    .timer-label {
+      font-size: 0.8125rem;
+      color: #92400E;
+    }
+
+    .timer-countdown {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #B45309;
+    }
+
+    /* Navigation buttons */
+    .nav-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    /* Loading / Error states */
+    .loading-state, .error-state {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .spinner-large {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #E5E7EB;
+      border-top-color: #6366F1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 480px) {
+      .success-card { padding: 2rem 1.5rem; }
+      .hotline-number { font-size: 2rem; letter-spacing: 2px; }
+      .session-info-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">
+      <span class="logo-icon">🌿</span>
+      <span class="logo-text">Comfort Counsel</span>
+    </div>
+    <div class="nav-menu" id="nav-menu">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="find-counselors.html" class="nav-link">Find Counselors</a>
+      <a href="my-sessions.html" class="nav-link" id="nav-sessions" style="display:none">My Sessions</a>
+      <a href="account.html" class="nav-link" id="nav-account" style="display:none">My Account</a>
+      <a href="login.html" class="nav-link-btn" id="nav-login">Login</a>
+      <button class="nav-link-btn" id="nav-logout" style="display:none" onclick="ComfortCounsel.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<section class="success-page">
+  <div class="success-container">
+    <div class="success-card" id="success-card">
+      <!-- Loading state shown initially -->
+      <div class="loading-state" id="loading-state">
+        <div class="spinner-large"></div>
+        <p style="color: var(--text-secondary);">Verifying your payment...</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="script.js"></script>
+<script>
+(async function() {
+  // If no reference in URL, redirect home
+  const params = new URLSearchParams(window.location.search);
+  const reference = params.get('reference');
+
+  if (!reference) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  try {
+    // Verify payment with backend
+    const data = await ComfortCounsel.apiRequest(`/api/verify/${reference}`);
+
+    if (data && data.success) {
+      showSuccess(data);
+    } else {
+      showError('Payment not successful. Please try again.');
+    }
+  } catch (err) {
+    console.error('Verification error:', err);
+    showError(err.message || 'Failed to verify payment. Please contact support.');
+  }
+})();
+
+function showSuccess(data) {
+  const hotline = data.hotline || 'N/A';
+  const expiresAt = data.expires_at ? new Date(data.expires_at) : new Date(Date.now() + 45 * 60 * 1000);
+  const counselorName = data.counselor_name || 'Your Counselor';
+  const category = data.category || 'Counseling';
+
+  document.getElementById('success-card').innerHTML = `
+    <div class="success-icon">✓</div>
+    <h1 class="success-title">Payment Successful!</h1>
+    <p class="success-subtitle">Your session is now active. Call your counselor using the number below.</p>
+
+    <div class="hotline-section">
+      <div class="hotline-label">📞 Hotline Number</div>
+      <div class="hotline-number" id="hotline-display">${hotline}</div>
+      <div class="hotline-hint">Call this number to connect with your counselor</div>
+      <a href="tel:${hotline}" class="call-now-btn">
+        📞 Call Now
+      </a>
+    </div>
+
+    <div class="timer-section">
+      <span class="timer-icon">⏱️</span>
+      <div class="timer-text">
+        <div class="timer-label">Session expires in</div>
+        <div class="timer-countdown" id="countdown">Calculating...</div>
+      </div>
+    </div>
+
+    <div class="session-info-grid">
+      <div class="session-info-item">
+        <div class="session-info-label">Counselor</div>
+        <div class="session-info-value">${counselorName}</div>
+      </div>
+      <div class="session-info-item">
+        <div class="session-info-label">Category</div>
+        <div class="session-info-value">${category}</div>
+      </div>
+      <div class="session-info-item">
+        <div class="session-info-label">Duration</div>
+        <div class="session-info-value">45 minutes</div>
+      </div>
+      <div class="session-info-item">
+        <div class="session-info-label">Status</div>
+        <div class="session-info-value" style="color: #10B981;">Active ✓</div>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <a href="my-sessions.html" class="btn btn-primary">View My Sessions</a>
+      <a href="find-counselors.html" class="btn btn-outline">Find Another Counselor</a>
+    </div>
+  `;
+
+  // Start countdown timer
+  startCountdown(expiresAt);
+}
+
+function showError(message) {
+  document.getElementById('success-card').innerHTML = `
+    <div class="error-state">
+      <div class="error-icon">❌</div>
+      <h2 style="color: var(--text-primary); margin-bottom: 0.5rem;">Payment Not Verified</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 2rem;">${message}</p>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <a href="find-counselors.html" class="btn btn-primary">Try Again</a>
+        <a href="index.html" class="btn btn-outline">Go Home</a>
+      </div>
+    </div>
+  `;
+}
+
+function startCountdown(expiresAt) {
+  const el = document.getElementById('countdown');
+  if (!el) return;
+
+  function update() {
+    const diff = new Date(expiresAt) - new Date();
+    if (diff <= 0) {
+      el.textContent = 'Session expired';
+      return;
+    }
+    const mins = Math.floor(diff / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    el.textContent = `${mins}m ${secs}s`;
+    setTimeout(update, 1000);
+  }
+
+  update();
+}
+</script>
+</body>
+</html>

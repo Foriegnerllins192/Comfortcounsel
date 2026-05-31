@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find Counselors - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="find-counselors.css" />
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">
+      <span class="logo-icon">🌿</span>
+      <span class="logo-text">Comfort Counsel</span>
+    </div>
+    
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    
+    <div class="nav-menu" id="nav-menu">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="find-counselors.html" class="nav-link active">Find Counselors</a>
+      <a href="post-problem.html" class="nav-link">Post a Problem</a>
+      <a href="my-sessions.html" class="nav-link" id="nav-sessions" style="display:none">My Sessions</a>
+      <a href="account.html" class="nav-link" id="nav-account" style="display:none">My Account</a>
+      <a href="login.html" class="nav-link-btn" id="nav-login">Login</a>
+      <a href="register.html" class="nav-link-btn btn-outline" id="nav-register">Sign Up</a>
+      <button class="nav-link-btn" id="nav-logout" style="display:none" onclick="ComfortCounsel.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<section class="page-header-section">
+  <div class="container">
+    <h1 class="page-title">Find Your Perfect Counselor</h1>
+    <p class="page-subtitle">Browse verified counselors by category, price, rating, and level</p>
+    
+    <!-- SEARCH BAR -->
+    <div class="search-container">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Search by name, specialty, or keyword..."
+          id="counselor-search"
+          aria-label="Search counselors by name, specialty, or keyword"
+          onkeypress="if(event.key==='Enter') applyFilters()"
+        />
+        <button class="search-btn" id="search-btn" onclick="applyFilters()">Search</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FILTERS & RESULTS -->
+<section class="filters-results-section">
+  <div class="container">
+    <div class="filters-results-layout">
+      
+      <!-- SIDEBAR FILTERS -->
+      <aside class="filters-sidebar" id="filters-sidebar">
+        <div class="filters-header">
+          <h2 class="filters-title">Filters</h2>
+          <button class="filters-clear" id="clear-filters">Clear All</button>
+        </div>
+        
+        <!-- Category Filter -->
+        <div class="filter-group">
+          <h3 class="filter-label">Category</h3>
+          <div class="filter-options">
+            <label class="filter-checkbox">
+              <input type="checkbox" name="category" value="relationship" />
+              <span>Relationship</span>
+              <span class="filter-count">(120)</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="category" value="family" />
+              <span>Family</span>
+              <span class="filter-count">(85)</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="category" value="business" />
+              <span>Business</span>
+              <span class="filter-count">(95)</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="category" value="youth" />
+              <span>Youth Life</span>
+              <span class="filter-count">(110)</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="category" value="career" />
+              <span>Career</span>
+              <span class="filter-count">(78)</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="category" value="mental-wellness" />
+              <span>Mental Wellness</span>
+              <span class="filter-count">(92)</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Price Range Filter -->
+        <div class="filter-group">
+          <h3 class="filter-label">Price Range (GHS)</h3>
+          <div class="price-range-inputs">
+            <input type="number" class="price-input" placeholder="Min" id="price-min" min="0" value="0" />
+            <span class="price-separator">-</span>
+            <input type="number" class="price-input" placeholder="Max" id="price-max" min="0" value="400" />
+          </div>
+          <div class="price-range-slider">
+            <input type="range" class="range-slider" id="price-range" min="0" max="400" value="400" />
+            <div class="range-labels">
+              <span>GHS 0</span>
+              <span>GHS 400</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Rating Filter -->
+        <div class="filter-group">
+          <h3 class="filter-label">Minimum Rating</h3>
+          <div class="filter-options">
+            <label class="filter-radio">
+              <input type="radio" name="rating" value="5" />
+              <span class="rating-stars">★★★★★</span>
+              <span>5.0</span>
+            </label>
+            <label class="filter-radio">
+              <input type="radio" name="rating" value="4" />
+              <span class="rating-stars">★★★★☆</span>
+              <span>4.0 & up</span>
+            </label>
+            <label class="filter-radio">
+              <input type="radio" name="rating" value="3" />
+              <span class="rating-stars">★★★☆☆</span>
+              <span>3.0 & up</span>
+            </label>
+            <label class="filter-radio">
+              <input type="radio" name="rating" value="0" checked />
+              <span>Any rating</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Level Filter -->
+        <div class="filter-group">
+          <h3 class="filter-label">Counselor Level</h3>
+          <div class="filter-options">
+            <label class="filter-checkbox">
+              <input type="checkbox" name="level" value="premium" />
+              <span class="level-badge-small level-premium">Premium</span>
+              <span class="filter-count">(45)</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="level" value="standard" />
+              <span class="level-badge-small level-standard">Standard</span>
+              <span class="filter-count">(120)</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="level" value="basic" />
+              <span class="level-badge-small level-basic">Basic</span>
+              <span class="filter-count">(335)</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Verified Filter -->
+        <div class="filter-group">
+          <h3 class="filter-label">Other Filters</h3>
+          <div class="filter-options">
+            <label class="filter-checkbox">
+              <input type="checkbox" name="verified" value="true" />
+              <span>✓ Verified Only</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="available" value="true" />
+              <span>Available Now</span>
+            </label>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary btn-block" id="apply-filters">Apply Filters</button>
+      </aside>
+      
+      <!-- RESULTS AREA -->
+      <main class="results-main">
+        
+        <!-- Results Header -->
+        <div class="results-header">
+          <div class="results-info">
+            <h2 class="results-count" id="results-count">500 counselors found</h2>
+            <div class="active-filters" id="active-filters">
+              <!-- Active filter tags will appear here -->
+            </div>
+          </div>
+          
+          <div class="results-sort">
+            <label for="sort-select">Sort by:</label>
+            <select class="sort-select" id="sort-select">
+              <option value="recommended">Recommended</option>
+              <option value="rating-high">Highest Rated</option>
+              <option value="rating-low">Lowest Rated</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="sessions">Most Sessions</option>
+            </select>
+          </div>
+          
+          <button class="filters-toggle-btn" id="filters-toggle">
+            <span>Filters</span>
+            <span class="filter-icon">⚙️</span>
+          </button>
+        </div>
+        
+        <!-- Counselor Grid -->
+        <div class="counselors-grid" id="counselors-grid">
+          <!-- Counselor cards will be loaded from database -->
+          <div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+            <p style="color: var(--text-secondary);">Loading counselors...</p>
+          </div>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+          <button class="pagination-btn" disabled>← Previous</button>
+          <div class="pagination-numbers">
+            <button class="pagination-number active">1</button>
+            <button class="pagination-number">2</button>
+            <button class="pagination-number">3</button>
+            <span class="pagination-dots">...</span>
+            <button class="pagination-number">10</button>
+          </div>
+          <button class="pagination-btn">Next →</button>
+        </div>
+        
+        <!-- Empty State (hidden by default) -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+          <div class="empty-icon">🔍</div>
+          <h3 class="empty-title">No counselors found</h3>
+          <p class="empty-text">Try adjusting your filters or search terms</p>
+          <button class="btn btn-primary" id="reset-filters">Reset Filters</button>
+        </div>
+        
+      </main>
+      
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3 class="footer-logo">🌿 Comfort Counsel</h3>
+        <p class="footer-description">Professional counseling marketplace connecting clients with verified counselors.</p>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">For Clients</h4>
+        <ul class="footer-links">
+          <li><a href="find-counselors.html">Find Counselors</a></li>
+          <li><a href="post-problem.html">Post a Problem</a></li>
+          <li><a href="#">How It Works</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">For Counselors</h4>
+        <ul class="footer-links">
+          <li><a href="register-counselor.html">Become a Counselor</a></li>
+          <li><a href="#">Pricing Plans</a></li>
+          <li><a href="#">Resources</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">Support</h4>
+        <ul class="footer-links">
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Safety & Trust</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2026 Comfort Counsel. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script src="api.js"></script>
+<script>
+// Global state
+let allCounselors = [];
+let filteredCounselors = [];
+let currentPage = 1;
+const counselorsPerPage = 6;
+let searchDebounceTimer = null;
+
+// Load counselors on page load
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadCounselors();  // wait for data first
+  setupFilters();
+  setupSort();
+  setupPagination();
+  loadSearchFromURL();     // now allCounselors is populated, safe to filter
+});
+
+/**
+ * Load search query from URL parameters
+ * Validates: Requirements 2.1, 2.2, 2.3
+ */
+function loadSearchFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchQuery = urlParams.get('search');
+  
+  if (searchQuery && searchQuery.trim()) {
+    const searchInput = document.getElementById('counselor-search');
+    if (searchInput) {
+      searchInput.value = decodeURIComponent(searchQuery.trim());
+      // Apply filters immediately after setting the search query (Task 2.3)
+      applyFilters();
+    }
+  }
+  
+  // Also check for category parameter
+  const categoryParam = urlParams.get('category');
+  if (categoryParam) {
+    const categoryCheckbox = document.querySelector(`input[name="category"][value="${categoryParam.toLowerCase()}"]`);
+    if (categoryCheckbox) {
+      categoryCheckbox.checked = true;
+      applyFilters();
+    }
+  }
+  
+  // Check for sort parameter
+  const sortParam = urlParams.get('sort');
+  if (sortParam === 'rating') {
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+      sortSelect.value = 'rating-high';
+      applyFilters();
+    }
+  }
+}
+
+// Load all counselors from database
+async function loadCounselors() {
+  const container = document.getElementById('counselors-grid');
+  
+  try {
+    allCounselors = await ComfortCounsel.apiRequest('/api/counselors');
+    filteredCounselors = [...allCounselors];
+    
+    if (!allCounselors || allCounselors.length === 0) {
+      showEmptyState();
+      return;
+    }
+    
+    displayCounselors(filteredCounselors);
+    updateResultsCount(filteredCounselors.length);
+    
+  } catch (error) {
+    console.error('Error loading counselors:', error);
+    container.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+        <p style="color: var(--danger);">Failed to load counselors. Please try again later.</p>
+      </div>
+    `;
+  }
+}
+
+// Display counselors in grid with pagination
+function displayCounselors(counselors) {
+  const container = document.getElementById('counselors-grid');
+  const emptyState = document.getElementById('empty-state');
+  
+  if (counselors.length === 0) {
+    showEmptyState();
+    return;
+  }
+  
+  emptyState.style.display = 'none';
+  
+  // Calculate pagination
+  const startIndex = (currentPage - 1) * counselorsPerPage;
+  const endIndex = startIndex + counselorsPerPage;
+  const paginatedCounselors = counselors.slice(startIndex, endIndex);
+  
+  container.innerHTML = paginatedCounselors.map(counselor => createCounselorCard(counselor)).join('');
+  
+  // Update pagination controls
+  updatePaginationControls(counselors.length);
+}
+
+// Create counselor card HTML
+function createCounselorCard(counselor) {
+  const yearsExp = counselor.years_experience || 0;
+  const bio = counselor.bio || 'Professional counselor ready to help you.';
+  const truncatedBio = bio.length > 150 ? bio.substring(0, 150) + '...' : bio;
+  const location = counselor.location || 'Ghana';
+  const price = counselor.price || 80;
+  const rating = counselor.rating || 0;
+  const tier = counselor.subscription_tier || 'basic';
+  
+  // Generate star rating display
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+  let starsHTML = '★'.repeat(fullStars);
+  if (hasHalfStar) starsHTML += '⯨';
+  starsHTML += '☆'.repeat(emptyStars);
+  
+  // Tier badge
+  const tierBadges = {
+    'premium': '<span class="level-badge-small level-premium">Premium</span>',
+    'standard': '<span class="level-badge-small level-standard">Standard</span>',
+    'basic': '<span class="level-badge-small level-basic">Basic</span>'
+  };
+  const tierBadge = tierBadges[tier] || tierBadges['basic'];
+  
+  return `
+    <div class="counselor-card" data-counselor-id="${counselor.id}">
+      <div class="counselor-header">
+        <img src="${ComfortCounsel.getAvatarUrl(counselor.name, counselor.profile_picture, 'list')}" 
+             alt="${counselor.name}" 
+             class="counselor-avatar" />
+        ${tier !== 'basic' ? '<div class="verified-badge-card">✓</div>' : ''}
+      </div>
+      <div class="counselor-body">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+          <h3 class="counselor-name">${counselor.name}</h3>
+          ${tierBadge}
+        </div>
+        <p class="counselor-specialty">${counselor.category}</p>
+        <div style="color: #FFA500; font-size: 0.875rem; margin-bottom: 0.5rem;">
+          ${starsHTML} <span style="color: var(--text-secondary);">(${rating.toFixed(1)})</span>
+        </div>
+        <p class="counselor-bio">${truncatedBio}</p>
+        <div class="counselor-meta">
+          <span class="meta-item">📍 ${location}</span>
+          <span class="meta-item">💼 ${yearsExp} years exp</span>
+          ${counselor.is_available ? '<span class="meta-item">✅ Available</span>' : '<span class="meta-item">⏸️ Busy</span>'}
+        </div>
+        <div class="counselor-footer">
+          <div class="counselor-price">
+            <span class="price-amount">GHS ${price}</span>
+            <span class="price-label">per session</span>
+          </div>
+          <button class="btn-view-profile" onclick="window.location.href='counselor-profile.html?id=${counselor.id}'">View Profile</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Setup filters
+function setupFilters() {
+  const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
+  const searchBtn = document.getElementById('search-btn');
+  const searchInput = document.getElementById('counselor-search');
+  const clearFiltersBtn = document.getElementById('clear-filters');
+  const applyFiltersBtn = document.getElementById('apply-filters');
+  
+  // Apply filters button
+  if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener('click', applyFilters);
+  }
+  
+  // Clear filters button
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', () => {
+      // Uncheck all checkboxes
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+      // Reset radios — re-check "Any rating" (value="0")
+      document.querySelectorAll('input[type="radio"]').forEach(rb => rb.checked = false);
+      const anyRating = document.querySelector('input[name="rating"][value="0"]');
+      if (anyRating) anyRating.checked = true;
+      // Clear search
+      if (searchInput) searchInput.value = '';
+      // Clear URL param
+      const url = new URL(window.location.href);
+      url.searchParams.delete('search');
+      window.history.replaceState({}, '', url.toString());
+      // Reset to all counselors
+      filteredCounselors = [...allCounselors];
+      currentPage = 1;
+      displayCounselors(filteredCounselors);
+      updateResultsCount(filteredCounselors.length);
+    });
+  }
+  
+  // Search button
+  if (searchBtn) {
+    searchBtn.addEventListener('click', applyFilters);
+  }
+  
+  // Search on Enter key
+  if (searchInput) {
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        applyFilters();
+      }
+    });
+    
+    // Real-time search with debouncing (300ms delay) - Task 2.4
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        applyFilters();
+      }, 300);
+    });
+  }
+}
+
+// Apply all filters
+function applyFilters() {
+  const searchQuery = document.getElementById('counselor-search').value.toLowerCase().trim();
+  const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked'))
+    .map(cb => cb.value);
+  const minPrice = parseInt(document.getElementById('price-min').value) || 0;
+  const maxPrice = parseInt(document.getElementById('price-max').value) || 400;
+  const minRating = parseFloat(document.querySelector('input[name="rating"]:checked')?.value) || 0;
+  const selectedLevels = Array.from(document.querySelectorAll('input[name="level"]:checked'))
+    .map(cb => cb.value);
+  const verifiedOnly = document.querySelector('input[name="verified"]:checked')?.checked || false;
+  const availableOnly = document.querySelector('input[name="available"]:checked')?.checked || false;
+  
+  // Update URL with search query (REQ-19)
+  const url = new URL(window.location.href);
+  if (searchQuery) {
+    url.searchParams.set('search', searchQuery);
+  } else {
+    url.searchParams.delete('search');
+  }
+  window.history.replaceState({}, '', url.toString());
+  
+  filteredCounselors = allCounselors.filter(counselor => {
+    // Search filter (name, category, bio)
+    if (searchQuery) {
+      const matchesSearch = 
+        counselor.name.toLowerCase().includes(searchQuery) ||
+        counselor.category.toLowerCase().includes(searchQuery) ||
+        (counselor.bio && counselor.bio.toLowerCase().includes(searchQuery));
+      
+      if (!matchesSearch) return false;
+    }
+    
+    // Category filter
+    if (selectedCategories.length > 0) {
+      if (!selectedCategories.includes(counselor.category.toLowerCase())) {
+        return false;
+      }
+    }
+    
+    // Price range filter
+    const counselorPrice = counselor.price || 80;
+    if (counselorPrice < minPrice || counselorPrice > maxPrice) {
+      return false;
+    }
+    
+    // Rating filter
+    const counselorRating = counselor.rating || 0;
+    if (counselorRating < minRating) {
+      return false;
+    }
+    
+    // Level filter
+    if (selectedLevels.length > 0) {
+      const counselorLevel = counselor.subscription_tier || 'basic';
+      if (!selectedLevels.includes(counselorLevel)) {
+        return false;
+      }
+    }
+    
+    // Verified filter (premium and standard are verified)
+    if (verifiedOnly) {
+      const counselorLevel = counselor.subscription_tier || 'basic';
+      if (counselorLevel === 'basic') {
+        return false;
+      }
+    }
+    
+    // Available filter
+    if (availableOnly) {
+      if (!counselor.is_available) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  // Reset to page 1 when filters change
+  currentPage = 1;
+  displayCounselors(filteredCounselors);
+  updateResultsCount(filteredCounselors.length);
+}
+
+// Setup search functionality
+function setupSearch() {
+  // Already handled in setupFilters
+}
+
+// Setup sort functionality
+function setupSort() {
+  const sortSelect = document.getElementById('sort-select');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      applySorting(e.target.value);
+    });
+  }
+}
+
+// Apply sorting to filtered counselors
+function applySorting(sortType) {
+  switch (sortType) {
+    case 'rating-high':
+      filteredCounselors.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      break;
+    
+    case 'rating-low':
+      filteredCounselors.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+      break;
+    
+    case 'price-low':
+      filteredCounselors.sort((a, b) => (a.price || 80) - (b.price || 80));
+      break;
+    
+    case 'price-high':
+      filteredCounselors.sort((a, b) => (b.price || 80) - (a.price || 80));
+      break;
+    
+    case 'sessions':
+      filteredCounselors.sort((a, b) => (b.total_sessions || 0) - (a.total_sessions || 0));
+      break;
+    
+    case 'recommended':
+    default:
+      // Recommended: Sort by tier (premium > standard > basic), then by rating
+      const tierOrder = { 'premium': 3, 'standard': 2, 'basic': 1 };
+      filteredCounselors.sort((a, b) => {
+        const tierA = tierOrder[a.subscription_tier || 'basic'];
+        const tierB = tierOrder[b.subscription_tier || 'basic'];
+        
+        if (tierA !== tierB) {
+          return tierB - tierA; // Higher tier first
+        }
+        
+        // If same tier, sort by rating
+        return (b.rating || 0) - (a.rating || 0);
+      });
+      break;
+  }
+  
+  // Reset to page 1 and redisplay
+  currentPage = 1;
+  displayCounselors(filteredCounselors);
+}
+
+// Update results count
+function updateResultsCount(count) {
+  const resultsCount = document.getElementById('results-count');
+  if (resultsCount) {
+    resultsCount.textContent = `${count} counselor${count !== 1 ? 's' : ''} found`;
+    // Announce to screen readers (REQ-15.5)
+    resultsCount.setAttribute('aria-live', 'polite');
+  }
+}
+
+// Show empty state
+function showEmptyState() {
+  const container = document.getElementById('counselors-grid');
+  const emptyState = document.getElementById('empty-state');
+  
+  container.innerHTML = '';
+  emptyState.style.display = 'block';
+}
+
+// Reset filters button in empty state
+const resetFiltersBtn = document.getElementById('reset-filters');
+if (resetFiltersBtn) {
+  resetFiltersBtn.addEventListener('click', () => {
+    document.getElementById('clear-filters').click();
+  });
+}
+
+// Filters toggle for mobile
+const filtersToggle = document.getElementById('filters-toggle');
+const filtersSidebar = document.getElementById('filters-sidebar');
+if (filtersToggle && filtersSidebar) {
+  filtersToggle.addEventListener('click', () => {
+    filtersSidebar.classList.toggle('open');
+  });
+}
+
+// Setup pagination
+function setupPagination() {
+  // Pagination will be set up dynamically in updatePaginationControls
+}
+
+// Update pagination controls
+function updatePaginationControls(totalCounselors) {
+  const totalPages = Math.ceil(totalCounselors / counselorsPerPage);
+  const paginationContainer = document.getElementById('pagination');
+  
+  if (totalPages <= 1) {
+    paginationContainer.style.display = 'none';
+    return;
+  }
+  
+  paginationContainer.style.display = 'flex';
+  
+  // Build pagination HTML
+  let paginationHTML = '';
+  
+  // Previous button
+  paginationHTML += `
+    <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
+      ← Previous
+    </button>
+  `;
+  
+  // Page numbers
+  paginationHTML += '<div class="pagination-numbers">';
+  
+  // Always show first page
+  paginationHTML += `
+    <button class="pagination-number ${currentPage === 1 ? 'active' : ''}" onclick="goToPage(1)">
+      1
+    </button>
+  `;
+  
+  // Show dots if needed
+  if (currentPage > 3) {
+    paginationHTML += '<span class="pagination-dots">...</span>';
+  }
+  
+  // Show pages around current page
+  for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+    paginationHTML += `
+      <button class="pagination-number ${currentPage === i ? 'active' : ''}" onclick="goToPage(${i})">
+        ${i}
+      </button>
+    `;
+  }
+  
+  // Show dots if needed
+  if (currentPage < totalPages - 2) {
+    paginationHTML += '<span class="pagination-dots">...</span>';
+  }
+  
+  // Always show last page if more than 1 page
+  if (totalPages > 1) {
+    paginationHTML += `
+      <button class="pagination-number ${currentPage === totalPages ? 'active' : ''}" onclick="goToPage(${totalPages})">
+        ${totalPages}
+      </button>
+    `;
+  }
+  
+  paginationHTML += '</div>';
+  
+  // Next button
+  paginationHTML += `
+    <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
+      Next →
+    </button>
+  `;
+  
+  paginationContainer.innerHTML = paginationHTML;
+}
+
+// Go to specific page
+function goToPage(pageNumber) {
+  const totalPages = Math.ceil(filteredCounselors.length / counselorsPerPage);
+  
+  // Validate page number
+  if (pageNumber < 1 || pageNumber > totalPages) {
+    return;
+  }
+  
+  currentPage = pageNumber;
+  displayCounselors(filteredCounselors);
+  
+  // Scroll to top of results
+  document.getElementById('counselors-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
+

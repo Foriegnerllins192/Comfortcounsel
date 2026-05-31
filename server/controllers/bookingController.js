@@ -34,12 +34,19 @@ const initiateBooking = async (req, res) => {
     if (userActive.rows.length)
       return res.status(409).json({ error: 'You already have an active session. Please wait for it to expire or complete.' });
 
-    // Feature 1: Check counselor exists and is approved
+    // Feature 1: Check counselor exists and is approved, fetch price and commission_rate
     const counselor = await pool.query(
-      "SELECT id, phone_number FROM counselors WHERE id=$1 AND status='approved'",
+      "SELECT id, phone_number, price, commission_rate FROM counselors WHERE id=$1 AND status='approved'",
       [counselor_id]
     );
     if (!counselor.rows.length) return res.status(404).json({ error: 'Counselor not found or not approved' });
+    
+    // Get counselor's custom price (default to 80 if invalid)
+    let sessionPrice = parseFloat(counselor.rows[0].price) || 80;
+    if (sessionPrice < 50 || sessionPrice > 1000) {
+      console.warn(`[BOOKING] Invalid price ${sessionPrice} for counselor ${counselor_id}. Using default GHS 80.`);
+      sessionPrice = 80;
+    }
 
     // Feature 1 & 6: Counselor busy check — has active paid session not yet expired
     const counselorBusy = await pool.query(
@@ -54,8 +61,8 @@ const initiateBooking = async (req, res) => {
     const counselorPhone = counselor.rows[0].phone_number;
 
     const session = await pool.query(
-      'INSERT INTO sessions (user_id, counselor_id, caller_phone, counselor_phone) VALUES ($1,$2,$3,$4) RETURNING id',
-      [req.user.id, counselor_id, caller_phone, counselorPhone]
+      'INSERT INTO sessions (user_id, counselor_id, caller_phone, counselor_phone, session_amount) VALUES ($1,$2,$3,$4,$5) RETURNING id',
+      [req.user.id, counselor_id, caller_phone, counselorPhone, sessionPrice]
     );
     const sessionId = session.rows[0].id;
 
@@ -65,17 +72,22 @@ const initiateBooking = async (req, res) => {
 
     await pool.query(
       'INSERT INTO payments (user_id, session_id, amount, paystack_reference) VALUES ($1,$2,$3,$4)',
-      [req.user.id, sessionId, SESSION_PRICE, reference]
+      [req.user.id, sessionId, sessionPrice, reference]
     );
+
+    // Get base URL for callback
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const callbackUrl = `${baseUrl}/booking-success.html?session_id=${sessionId}&reference=${reference}`;
 
     const paystackRes = await axios.post(
       'https://api.paystack.co/transaction/initialize',
       {
         email,
-        amount: SESSION_PRICE * 100,
+        amount: sessionPrice * 100, // Convert to pesewas
         reference,
         currency: 'GHS',
-        metadata: { session_id: sessionId, user_name: name, caller_phone }
+        metadata: { session_id: sessionId, user_name: name, caller_phone },
+        callback_url: callbackUrl
       },
       { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` } }
     );
@@ -184,7 +196,7 @@ const completeSession = async (req, res) => {
     await client.query('BEGIN');
 
     const sessionRes = await client.query(
-      `SELECT s.*, c.user_id as counselor_user_id, c.id as c_id FROM sessions s
+      `SELECT s.*, s.session_amount, c.user_id as counselor_user_id, c.id as c_id, c.commission_rate FROM sessions s
        JOIN counselors c ON s.counselor_id = c.id
        WHERE s.id=$1 AND c.user_id=$2 AND s.payment_status='paid'
          AND s.session_status IN ('scheduled','active')`,
@@ -193,25 +205,39 @@ const completeSession = async (req, res) => {
     if (!sessionRes.rows.length)
       return res.status(404).json({ error: 'Session not found or not eligible for completion' });
 
+    // Calculate revenue split based on actual session price and commission rate
+    const sessionAmount = parseFloat(sessionRes.rows[0].session_amount) || 80;
+    const commissionRate = parseFloat(sessionRes.rows[0].commission_rate) || 20;
+    
+    const platformCommission = Number((sessionAmount * (commissionRate / 100)).toFixed(2));
+    const counselorEarnings = Number((sessionAmount - platformCommission).toFixed(2));
+
     await client.query("UPDATE sessions SET session_status='completed' WHERE id=$1", [session_id]);
 
     // Feature 1: Free up counselor
     await client.query('UPDATE counselors SET is_available=TRUE WHERE id=$1', [sessionRes.rows[0].c_id]);
 
-    await creditWallet(client, req.user.id, COUNSELOR_SHARE, `Session #${session_id} completed`);
+    await creditWallet(client, req.user.id, counselorEarnings, `Session #${session_id} completed`);
 
     await client.query(
       'INSERT INTO counselor_payouts (counselor_id, amount) VALUES ((SELECT id FROM counselors WHERE user_id=$1), $2)',
-      [req.user.id, COUNSELOR_SHARE]
+      [req.user.id, counselorEarnings]
     );
 
     const adminRes = await client.query("SELECT id FROM users WHERE role='admin' ORDER BY id LIMIT 1");
     if (adminRes.rows.length) {
-      await creditWallet(client, adminRes.rows[0].id, ADMIN_SHARE, `Platform fee – Session #${session_id}`);
+      await creditWallet(client, adminRes.rows[0].id, platformCommission, `Platform fee – Session #${session_id}`);
     }
+    
+    // Record revenue split in platform_commissions table
+    await client.query(
+      `INSERT INTO platform_commissions (session_id, counselor_id, session_amount, commission_rate, commission_amount, counselor_earnings, status)
+       VALUES ($1, $2, $3, $4, $5, $6, 'collected')`,
+      [session_id, sessionRes.rows[0].c_id, sessionAmount, commissionRate, platformCommission, counselorEarnings]
+    );
 
     await client.query('COMMIT');
-    res.json({ message: 'Session completed. GH₵35 credited to your wallet.' });
+    res.json({ message: `Session completed. GH₵${counselorEarnings.toFixed(2)} credited to your wallet.` });
   } catch (err) {
     await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });

@@ -56,9 +56,17 @@ const login = async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, name, email, role, created_at FROM users WHERE id=$1', [req.user.id]
-    );
+    let result;
+    try {
+      result = await pool.query(
+        'SELECT id, name, email, role, profile_picture, created_at FROM users WHERE id=$1', [req.user.id]
+      );
+    } catch (colErr) {
+      // profile_picture column might not exist yet
+      result = await pool.query(
+        'SELECT id, name, email, role, created_at FROM users WHERE id=$1', [req.user.id]
+      );
+    }
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -165,4 +173,72 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getProfile, changePassword, forgotPassword, resetPassword };
+const updateUserProfile = async (req, res) => {
+  const { name, email, phone } = req.body;
+  
+  // Validate name (Requirements 4.4, 8.1)
+  if (!name || name.trim().length === 0) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+  
+  if (name.trim().length > 255) {
+    return res.status(400).json({ error: 'Name must not exceed 255 characters' });
+  }
+  
+  // Validate email format (Requirements 4.4, 8.3)
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  
+  // Validate phone format if provided (Requirements 4.5, 8.4)
+  if (phone && !/^\d{10}$/.test(phone.trim())) {
+    return res.status(400).json({ error: 'Phone number must be 10 digits' });
+  }
+  
+  try {
+    // Trim whitespace from all text inputs (Requirements 8.2)
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedPhone = phone ? phone.trim() : null;
+    
+    // Check for duplicate email addresses (Requirements 4.6)
+    const emailCheck = await pool.query(
+      'SELECT id FROM users WHERE email = $1 AND id != $2',
+      [trimmedEmail, req.user.id]
+    );
+    
+    if (emailCheck.rows.length > 0) {
+      return res.status(409).json({ error: 'Email already in use' });
+    }
+    
+    // Update user record in database (Requirements 4.6)
+    const result = await pool.query(
+      'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING id, name, email, role, created_at',
+      [trimmedName, trimmedEmail, req.user.id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Update phone number if user is a counselor and phone is provided
+    if (trimmedPhone && req.user.role === 'counselor') {
+      await pool.query(
+        'UPDATE counselors SET phone_number = $1 WHERE user_id = $2',
+        [trimmedPhone, req.user.id]
+      );
+    }
+    
+    // Return updated user data (Requirements 4.6)
+    res.json({
+      message: 'Profile updated successfully',
+      user: result.rows[0]
+    });
+    
+  } catch (error) {
+    console.error('updateUserProfile error:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to update profile. Please try again.' });
+  }
+};
+
+module.exports = { register, login, getProfile, changePassword, forgotPassword, resetPassword, updateUserProfile };

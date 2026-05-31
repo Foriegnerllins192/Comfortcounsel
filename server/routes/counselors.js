@@ -3,7 +3,8 @@ const multer = require('multer');
 const { authenticate, requireRole } = require('../middleware/auth');
 const {
   registerCounselor, getCounselors, getCounselorById,
-  getDashboard, updateProfile, uploadProfilePicture, updateAvailability
+  getDashboard, updateProfile, uploadProfilePicture, updateAvailability,
+  getClientRequests, rescheduleSession
 } = require('../controllers/counselorController');
 
 const upload = multer({
@@ -18,6 +19,8 @@ router.get('/dashboard/me', authenticate, requireRole('counselor'), getDashboard
 router.put('/profile/me', authenticate, requireRole('counselor'), updateProfile);
 router.post('/profile/picture', authenticate, requireRole('counselor'), upload.single('profile_picture'), uploadProfilePicture);
 router.put('/availability', authenticate, requireRole('counselor'), updateAvailability);
+router.get('/client-requests', authenticate, requireRole('counselor'), getClientRequests);
+router.patch('/sessions/:session_id/reschedule', authenticate, requireRole('counselor'), rescheduleSession);
 
 // Wildcard param route last
 router.get('/:id', getCounselorById);

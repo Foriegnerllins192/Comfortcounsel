@@ -1,6 +1,6 @@
 const { pool } = require('../database');
 const bcrypt = require('bcryptjs');
-const { sendApprovalEmail, sendRejectionEmail } = require('../services/emailService');
+const { sendApprovalEmail, sendRejectionEmail, sendRevocationEmail } = require('../services/emailService');
 
 const getPendingCounselors = async (req, res) => {
   try {
@@ -72,6 +72,39 @@ const getUsers = async (req, res) => {
       'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC'
     );
     res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const getStats = async (req, res) => {
+  try {
+    // Total users count
+    const usersRes = await pool.query('SELECT COUNT(*) as count FROM users');
+    const totalUsers = parseInt(usersRes.rows[0].count);
+
+    // Total sessions count
+    const sessionsRes = await pool.query('SELECT COUNT(*) as count FROM sessions');
+    const totalSessions = parseInt(sessionsRes.rows[0].count);
+
+    // Total revenue (sum of successful payments)
+    const revenueRes = await pool.query(
+      "SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status='success'"
+    );
+    const totalRevenue = parseFloat(revenueRes.rows[0].total);
+
+    // Paid sessions count
+    const paidSessionsRes = await pool.query(
+      "SELECT COUNT(*) as count FROM sessions WHERE payment_status='paid'"
+    );
+    const paidSessions = parseInt(paidSessionsRes.rows[0].count);
+
+    res.json({
+      total_users: totalUsers,
+      total_sessions: totalSessions,
+      total_revenue: totalRevenue,
+      paid_sessions: paidSessions
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -218,7 +251,34 @@ const payCounselor = async (req, res) => {
   }
 };
 
+const revokeCounselor = async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Update counselor status to rejected (revoked)
+    await pool.query('UPDATE counselors SET status=$1 WHERE id=$2', ['rejected', id]);
+
+    // Fetch counselor name + email for notification
+    const result = await pool.query(
+      `SELECT u.name, u.email FROM counselors c
+       JOIN users u ON c.user_id = u.id WHERE c.id = $1`,
+      [id]
+    );
+
+    if (result.rows.length) {
+      const { name, email } = result.rows[0];
+      // Send revocation email (fire-and-forget)
+      sendRevocationEmail(name, email).catch(err =>
+        console.error(`Revocation email failed for ${email}:`, err.message)
+      );
+    }
+
+    res.json({ message: 'Counselor approval revoked and notification sent' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
-  getPendingCounselors, getAllCounselors, approveCounselor, getUsers, getSessions, getPayments,
+  getPendingCounselors, getAllCounselors, approveCounselor, revokeCounselor, getUsers, getStats, getSessions, getPayments,
   getAdmins, addAdmin, removeAdmin, getAdminWallet, getPayoutOverview, payCounselor
 };

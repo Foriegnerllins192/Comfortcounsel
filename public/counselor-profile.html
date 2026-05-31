@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Counselor Profile - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .profile-page {
+      background: var(--bg-secondary);
+      min-height: 100vh;
+      padding: 2rem 0;
+    }
+    
+    .profile-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    
+    .profile-header {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-md);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 2rem;
+      align-items: start;
+    }
+    
+    .profile-avatar-section {
+      text-align: center;
+    }
+    
+    .profile-avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 4px solid var(--primary);
+      margin-bottom: 1rem;
+    }
+    
+    .profile-info {
+      flex: 1;
+    }
+    
+    .profile-name {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .profile-specialty {
+      color: var(--primary);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    .profile-stats {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 1rem;
+    }
+    
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+    }
+    
+    .stat-icon {
+      font-size: 1.25rem;
+    }
+    
+    .profile-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .tag {
+      padding: 0.375rem 0.875rem;
+      background: var(--bg-secondary);
+      border-radius: 1.5rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    
+    .profile-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .price-card {
+      background: var(--bg-secondary);
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    
+    .price-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .price-amount {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    
+    .profile-content {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+    
+    .profile-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    
+    .profile-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+    
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: 0.75rem;
+      background: var(--gray-900);
+    }
+    
+    .video-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      font-size: 4rem;
+    }
+    
+    .about-text {
+      color: var(--text-secondary);
+      line-height: 1.8;
+      font-size: 1rem;
+    }
+    
+    .about-text p {
+      margin-bottom: 1rem;
+    }
+    
+    .reviews-summary {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .rating-overview {
+      text-align: center;
+    }
+    
+    .rating-number {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    
+    .rating-stars {
+      color: #FFA500;
+      font-size: 1.5rem;
+      margin: 0.5rem 0;
+    }
+    
+    .rating-count {
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+    }
+    
+    .rating-bars {
+      flex: 1;
+    }
+    
+    .rating-bar-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .rating-bar-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      width: 60px;
+    }
+    
+    .rating-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .rating-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+    }
+    
+    .rating-bar-count {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      width: 40px;
+      text-align: right;
+    }
+    
+    .review-item {
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .review-item:last-child {
+      border-bottom: none;
+    }
+    
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .review-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+    
+    .review-info {
+      flex: 1;
+    }
+    
+    .review-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+    
+    .review-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    
+    .review-stars {
+      color: #FFA500;
+    }
+    
+    .review-text {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    
+    .info-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .info-list li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .info-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .info-label {
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+    }
+    
+    .info-value {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    
+    @media (max-width: 1024px) {
+      .profile-content {
+        grid-template-columns: 1fr;
+      }
+      
+      .profile-sidebar {
+        order: -1;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .profile-header {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      
+      .profile-avatar-section {
+        margin: 0 auto;
+      }
+      
+      .profile-stats {
+        justify-content: center;
+      }
+      
+      .profile-actions {
+        width: 100%;
+      }
+      
+      .reviews-summary {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">
+      <span class="logo-icon">🌿</span>
+      <span class="logo-text">Comfort Counsel</span>
+    </div>
+    
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    
+    <div class="nav-menu" id="nav-menu">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="find-counselors.html" class="nav-link">Find Counselors</a>
+      <a href="post-problem.html" class="nav-link">Post a Problem</a>
+      <a href="my-sessions.html" class="nav-link" id="nav-sessions" style="display:none">My Sessions</a>
+      <a href="account.html" class="nav-link" id="nav-account" style="display:none">My Account</a>
+      <a href="login.html" class="nav-link-btn" id="nav-login">Login</a>
+      <a href="register.html" class="nav-link-btn btn-outline" id="nav-register">Sign Up</a>
+      <button class="nav-link-btn" id="nav-logout" style="display:none" onclick="ComfortCounsel.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- PROFILE PAGE -->
+<section class="profile-page">
+  <div class="profile-container">
+    
+    <!-- Profile Header -->
+    <div class="profile-header" id="profile-header">
+      <div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+        <p style="color: var(--text-secondary);">Loading counselor profile...</p>
+      </div>
+    </div>
+    
+    <!-- Profile Content -->
+    <div class="profile-content" id="profile-content" style="display: none;">
+      
+      <!-- Main Content -->
+      <div class="profile-main">
+        
+        <!-- About -->
+        <div class="card">
+          <h2 class="card-title">About Me</h2>
+          <div class="about-text" id="about-text">
+            <p>Loading...</p>
+          </div>
+        </div>
+        
+      </div>
+      
+      <!-- Sidebar -->
+      <div class="profile-sidebar">
+        
+        <!-- Quick Info -->
+        <div class="card">
+          <h3 class="card-title" style="font-size: 1.25rem;">Quick Info</h3>
+          <ul class="info-list" id="quick-info">
+            <li>
+              <span class="info-label">Loading...</span>
+              <span class="info-value">...</span>
+            </li>
+          </ul>
+        </div>
+        
+      </div>
+      
+    </div>
+    
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3 class="footer-logo">🌿 Comfort Counsel</h3>
+        <p class="footer-description">Professional counseling marketplace connecting clients with verified counselors.</p>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">For Clients</h4>
+        <ul class="footer-links">
+          <li><a href="find-counselors.html">Find Counselors</a></li>
+          <li><a href="post-problem.html">Post a Problem</a></li>
+          <li><a href="#">How It Works</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">For Counselors</h4>
+        <ul class="footer-links">
+          <li><a href="register-counselor.html">Become a Counselor</a></li>
+          <li><a href="#">Pricing Plans</a></li>
+          <li><a href="#">Resources</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">Support</h4>
+        <ul class="footer-links">
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Safety & Trust</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2026 Comfort Counsel. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+// Load counselor data from URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+const counselorId = urlParams.get('id');
+
+if (!counselorId) {
+  window.location.href = 'find-counselors.html';
+} else {
+  loadCounselorProfile(counselorId);
+}
+
+async function loadCounselorProfile(id) {
+  try {
+    const counselor = await ComfortCounsel.apiRequest(`/api/counselors/${id}`);
+    
+    if (!counselor) {
+      ComfortCounsel.showToast('Counselor not found', 'error');
+      setTimeout(() => window.location.href = 'find-counselors.html', 2000);
+      return;
+    }
+    
+    displayCounselorProfile(counselor);
+    
+  } catch (error) {
+    console.error('Error loading counselor profile:', error);
+    ComfortCounsel.showToast('Failed to load counselor profile', 'error');
+    
+    document.getElementById('profile-header').innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+        <p style="color: var(--danger);">Failed to load counselor profile. Please try again later.</p>
+        <button class="btn btn-primary" onclick="window.location.href='find-counselors.html'" style="margin-top: 1rem;">
+          Back to Counselors
+        </button>
+      </div>
+    `;
+  }
+}
+
+function displayCounselorProfile(counselor) {
+  const yearsExp = counselor.years_experience || 0;
+  const bio = counselor.bio || 'Professional counselor ready to help you with your concerns.';
+  const location = counselor.location || 'Ghana';
+  const phone = counselor.phone_number || 'Not provided';
+  const price = counselor.price || 80; // Get counselor's actual price, default to 80
+  
+  // Update profile header
+  document.getElementById('profile-header').innerHTML = `
+    <div class="profile-avatar-section">
+      <img src="${ComfortCounsel.getAvatarUrl(counselor.name, counselor.profile_picture, 'profile')}" 
+           alt="${counselor.name}" 
+           class="profile-avatar" />
+    </div>
+    
+    <div class="profile-info">
+      <h1 class="profile-name">${counselor.name}</h1>
+      <p class="profile-specialty">${counselor.category}</p>
+      
+      <div class="profile-stats">
+        <div class="stat">
+          <span class="stat-icon">🎓</span>
+          <span><strong>${yearsExp} years</strong> experience</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon">📍</span>
+          <span>${location}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon">📞</span>
+          <span>${phone}</span>
+        </div>
+      </div>
+      
+      <div class="profile-tags">
+        <span class="tag">${counselor.category}</span>
+        <span class="tag">${yearsExp} years experience</span>
+        <span class="tag">${location}</span>
+      </div>
+    </div>
+    
+    <div class="profile-actions">
+      <div class="price-card">
+        <div class="price-label">Session Price</div>
+        <div class="price-amount">GHS ${parseFloat(price).toFixed(2)}</div>
+        <button class="btn btn-primary btn-lg" style="width: 100%;" onclick="bookSession(${counselor.id})">
+          Book Session
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // Update about section
+  document.getElementById('about-text').innerHTML = `<p>${bio}</p>`;
+  
+  // Update quick info
+  document.getElementById('quick-info').innerHTML = `
+    <li>
+      <span class="info-label">Category</span>
+      <span class="info-value">${counselor.category}</span>
+    </li>
+    <li>
+      <span class="info-label">Experience</span>
+      <span class="info-value">${yearsExp} years</span>
+    </li>
+    <li>
+      <span class="info-label">Location</span>
+      <span class="info-value">${location}</span>
+    </li>
+    <li>
+      <span class="info-label">Phone</span>
+      <span class="info-value">${phone}</span>
+    </li>
+  `;
+  
+  // Store counselor data globally for booking modal
+  window.currentCounselor = counselor;
+  
+  // Show profile content
+  document.getElementById('profile-content').style.display = 'grid';
+}
+
+// ========================================
+// BOOKING MODAL - Task 3
+// ========================================
+
+/**
+ * Open booking modal with counselor details
+ * Validates: Requirements 3.3, 3.4, 3.5, 3.6
+ */
+function openBookingModal(counselor) {
+  const modal = document.getElementById('booking-modal');
+  if (!modal || !counselor) return;
+  
+  // Populate modal with counselor details
+  document.getElementById('booking-counselor-name').textContent = counselor.name;
+  document.getElementById('booking-counselor-category').textContent = counselor.category;
+  document.getElementById('booking-counselor-price').textContent = 'GHS ' + parseFloat(counselor.price || 80).toFixed(2);
+  document.getElementById('booking-session-duration').textContent = '45 minutes';
+  document.getElementById('booking-counselor-avatar').src = ComfortCounsel.getAvatarUrl(counselor.name, counselor.profile_picture, 'list');
+  
+  // Show modal
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  
+  // Focus on phone input
+  setTimeout(function() {
+    document.getElementById('booking-phone').focus();
+  }, 100);
+}
+
+/**
+ * Close booking modal
+ * Validates: Requirement 3.4
+ */
+function closeBookingModal() {
+  var modal = document.getElementById('booking-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+  document.body.style.overflow = '';
+  
+  // Clear phone input and error
+  var phoneInput = document.getElementById('booking-phone');
+  if (phoneInput) phoneInput.value = '';
+  var errorDiv = document.getElementById('booking-error');
+  if (errorDiv) errorDiv.style.display = 'none';
+  
+  // Reset button state
+  var confirmBtn = document.getElementById('confirm-booking-btn');
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = 'Proceed to Payment';
+  }
+}
+
+/**
+ * Validate phone number (Ghana format: 10 digits starting with 0 or 233)
+ * Validates: Requirement 3.7
+ */
+function validatePhoneNumber(phone) {
+  // Remove any spaces or dashes
+  var cleanPhone = phone.replace(/[\s-]/g, '');
+  
+  // Check for 10-digit Ghana format (e.g., 0551234567 or 233551234567)
+  var ghanaPhoneRegex = /^(0[5-9]\d{8}|233[5-9]\d{8})$/;
+  
+  return ghanaPhoneRegex.test(cleanPhone);
+}
+
+/**
+ * Format phone number for API (convert to 233 format)
+ */
+function formatPhoneForAPI(phone) {
+  var cleanPhone = phone.replace(/[\s-]/g, '');
+  
+  // If starts with 0, convert to 233
+  if (cleanPhone.startsWith('0')) {
+    return '233' + cleanPhone.substring(1);
+  }
+  
+  // If already has 233, return as is
+  if (cleanPhone.startsWith('233')) {
+    return cleanPhone;
+  }
+  
+  // Otherwise, assume it's already in some format
+  return cleanPhone;
+}
+
+/**
+ * Confirm booking and initiate payment
+ * Validates: Requirements 4.2, 4.3, 4.4, 4.5, 4.6
+ */
+async function confirmBooking() {
+  var phoneInput = document.getElementById('booking-phone');
+  var errorDiv = document.getElementById('booking-error');
+  var confirmBtn = document.getElementById('confirm-booking-btn');
+  
+  var phone = phoneInput.value.trim();
+  
+  // Validate phone number (Requirement 3.7)
+  if (!phone) {
+    errorDiv.textContent = 'Please enter your phone number';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  if (!validatePhoneNumber(phone)) {
+    errorDiv.textContent = 'Please enter a valid Ghana phone number (e.g., 0551234567)';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Hide error
+  errorDiv.style.display = 'none';
+  
+  // Show loading state (Requirement 4.4)
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = '<span class="spinner"></span> Processing...';
+  
+  try {
+    var counselor = window.currentCounselor;
+    if (!counselor) {
+      throw new Error('Counselor not found');
+    }
+    
+    // Call booking API (Requirement 4.2)
+    var response = await ComfortCounsel.apiRequest('/api/book', {
+      method: 'POST',
+      body: JSON.stringify({
+        counselor_id: counselor.id,
+        caller_phone: formatPhoneForAPI(phone)
+      })
+    });
+    
+    // Handle successful booking (Requirement 4.5)
+    if (response.payment_url) {
+      // Close modal
+      closeBookingModal();
+      
+      // Redirect to Paystack
+      window.location.href = response.payment_url;
+    } else {
+      throw new Error('No payment URL returned');
+    }
+    
+  } catch (error) {
+    console.error('Booking error:', error);
+    
+    // Show error message (Requirement 4.6)
+    errorDiv.textContent = error.message || 'Failed to create booking. Please try again.';
+    errorDiv.style.display = 'block';
+    
+    // Reset button
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = 'Proceed to Payment';
+  }
+}
+
+// Updated bookSession function - opens modal instead of showing "coming soon"
+function bookSession(counselorId) {
+  // Check if user is logged in (Requirement 3.5)
+  var token = localStorage.getItem('cc_token');
+  var userStr = localStorage.getItem('cc_user');
+  
+  if (!token || !userStr) {
+    // Redirect to login with return URL (Requirement 3.5)
+    window.location.href = 'login.html?redirect=counselor-profile.html?id=' + counselorId;
+    return;
+  }
+  
+  // If we have the currentCounselor from display, use it
+  if (window.currentCounselor && window.currentCounselor.id === counselorId) {
+    openBookingModal(window.currentCounselor);
+    return;
+  }
+  
+  // Otherwise, fetch counselor data first
+  loadCounselorProfile(counselorId).then(function() {
+    if (window.currentCounselor) {
+      openBookingModal(window.currentCounselor);
+    }
+  });
+}
+</script>
+
+<!-- BOOKING MODAL - Task 3.1 -->
+<div class="modal-overlay" id="booking-modal" style="display: none;">
+  <div class="modal-container">
+    <button class="modal-close" onclick="closeBookingModal()">&times;</button>
+    
+    <div class="modal-header">
+      <h2 class="modal-title">Book Session</h2>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Counselor Info -->
+      <div class="booking-counselor-info">
+        <img src="" alt="" class="booking-counselor-avatar" id="booking-counselor-avatar" />
+        <div class="booking-counselor-details">
+          <h3 id="booking-counselor-name">Counselor Name</h3>
+          <p id="booking-counselor-category">Category</p>
+        </div>
+      </div>
+      
+      <!-- Session Details -->
+      <div class="booking-session-details">
+        <div class="booking-detail-row">
+          <span class="booking-detail-label">Session Duration</span>
+          <span class="booking-detail-value" id="booking-session-duration">45 minutes</span>
+        </div>
+        <div class="booking-detail-row">
+          <span class="booking-detail-label">Price</span>
+          <span class="booking-detail-value price-highlight" id="booking-counselor-price">GHS 80</span>
+        </div>
+      </div>
+      
+      <!-- Phone Input -->
+      <div class="booking-form-group">
+        <label for="booking-phone" class="booking-label">Your Phone Number</label>
+        <input 
+          type="tel" 
+          id="booking-phone" 
+          class="booking-input" 
+          placeholder="e.g., 0551234567"
+          maxlength="12"
+        />
+        <p class="booking-hint">Enter a valid Ghana phone number for payment and contact</p>
+      </div>
+      
+      <!-- Error Message -->
+      <div class="booking-error" id="booking-error" style="display: none;"></div>
+      
+      <!-- Payment Info -->
+      <div class="booking-payment-info">
+        <p>🔒 Payment processed securely via Paystack</p>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeBookingModal()">Cancel</button>
+      <button class="btn btn-primary" id="confirm-booking-btn" onclick="confirmBooking()">
+        Proceed to Payment
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Click outside modal to close -->
+<script>
+document.addEventListener('click', function(e) {
+  var modal = document.getElementById('booking-modal');
+  if (modal && e.target === modal) {
+    closeBookingModal();
+  }
+});
+</script>
+
+<style>
+/* Booking Modal Styles - Task 3.2 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-container {
+  background: white;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.modal-close:hover {
+  background: var(--bg-secondary);
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.booking-counselor-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.booking-counselor-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.booking-counselor-details h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.booking-counselor-details p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.booking-session-details {
+  background: var(--bg-secondary);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.booking-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.booking-detail-row:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+.booking-detail-label {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+}
+
+.booking-detail-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.price-highlight {
+  font-size: 1.25rem;
+  color: var(--primary);
+}
+
+.booking-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.booking-label {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.booking-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.booking-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.booking-input.error {
+  border-color: var(--danger);
+}
+
+.booking-hint {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+.booking-error {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.booking-payment-info {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modal-footer .btn {
+  flex: 1;
+  max-width: 160px;
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .modal-container {
+    max-width: 100%;
+    border-radius: 1rem 1rem 0 0;
+    position: absolute;
+    bottom: 0;
+  }
+  
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+  
+  .modal-footer .btn {
+    max-width: 100%;
+  }
+}
+</style>
+
+<!-- Include api.js for booking API -->
+<script src="api.js"></script>
+
+</body>
+</html>
+

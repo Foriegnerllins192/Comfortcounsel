@@ -128,6 +128,50 @@ const sendRejectionEmail = async (name, email) => {
 };
 
 /**
+ * Send counselor revocation email (when approval is revoked).
+ */
+const sendRevocationEmail = async (name, email) => {
+  await transporter.sendMail({
+    from: `"Comfort Counsel" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: 'Account Status Update – Comfort Counsel',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;border:1px solid #e5e7eb;border-radius:12px;">
+        <div style="text-align:center;margin-bottom:1.5rem;">
+          <h1 style="color:#2E7D6B;margin:0">🌿 Comfort Counsel</h1>
+        </div>
+        <h2 style="color:#1f2937">Important Account Update, ${name}</h2>
+        <p style="color:#4b5563;line-height:1.7">
+          We regret to inform you that your counselor account approval has been <strong>revoked</strong>.
+        </p>
+        <p style="color:#4b5563;line-height:1.7">
+          This means you will no longer be able to receive session requests or access counselor features
+          on the Comfort Counsel platform.
+        </p>
+        <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:1rem;margin:1.5rem 0;border-radius:4px;">
+          <p style="color:#991b1b;margin:0;line-height:1.7">
+            <strong>What this means:</strong><br/>
+            • You cannot accept new session requests<br/>
+            • Your profile is no longer visible to clients<br/>
+            • Existing scheduled sessions may be affected
+          </p>
+        </div>
+        <p style="color:#4b5563;line-height:1.7">
+          If you believe this is an error or would like to appeal this decision, please contact our
+          support team immediately.
+        </p>
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:1.5rem 0" />
+        <p style="color:#9ca3af;font-size:.85rem;text-align:center">
+          Best regards,<br/>
+          <strong style="color:#2E7D6B">The Comfort Counsel Team</strong><br/>
+          <a href="${APP_URL}" style="color:#2E7D6B">${APP_URL}</a>
+        </p>
+      </div>
+    `
+  });
+};
+
+/**
  * Send password reset link email.
  */
 const sendPasswordResetEmail = async (email, name, resetLink) => {
@@ -177,4 +221,4 @@ const sendPasswordResetEmail = async (email, name, resetLink) => {
   });
 };
 
-module.exports = { sendPendingApprovalEmail, sendApprovalEmail, sendRejectionEmail, sendPasswordResetEmail };
+module.exports = { sendPendingApprovalEmail, sendApprovalEmail, sendRejectionEmail, sendRevocationEmail, sendPasswordResetEmail };

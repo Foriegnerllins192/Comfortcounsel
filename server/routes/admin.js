@@ -1,12 +1,13 @@
 const router = require('express').Router();
 const { authenticate, requireRole } = require('../middleware/auth');
 const {
-  getPendingCounselors, getAllCounselors, approveCounselor, getUsers, getSessions, getPayments,
+  getPendingCounselors, getAllCounselors, approveCounselor, getUsers, getStats, getSessions, getPayments,
   getAdmins, addAdmin, removeAdmin, getAdminWallet, getPayoutOverview, payCounselor
 } = require('../controllers/adminController');
 
 router.use(authenticate, requireRole('admin'));
 
+router.get('/stats', getStats);
 router.get('/counselors', getAllCounselors);          // ?status=pending|approved|rejected
 router.get('/counselors/pending', getPendingCounselors);
 router.patch('/counselors/:id', approveCounselor);

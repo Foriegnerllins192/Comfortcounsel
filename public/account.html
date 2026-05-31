@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Settings - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: var(--bg-secondary); }
+    .account-wrap { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .page-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .page-subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+    .account-grid { display: grid; grid-template-columns: 220px 1fr; gap: 1.5rem; }
+    /* Sidebar */
+    .sidebar { background: white; border-radius: 1rem; padding: 1.25rem; border: 1px solid var(--border); height: fit-content; position: sticky; top: 5rem; }
+    .sidebar-menu { list-style: none; }
+    .sidebar-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: var(--text-secondary); font-weight: 500; cursor: pointer; transition: var(--transition); }
+    .sidebar-link:hover { background: var(--bg-secondary); color: var(--primary); }
+    .sidebar-link.active { background: rgba(99,102,241,0.1); color: var(--primary); font-weight: 600; }
+    .sidebar-icon { font-size: 1.125rem; }
+    /* Content panels */
+    .panel { background: white; border-radius: 1rem; padding: 2rem; border: 1px solid var(--border); display: none; }
+    .panel.active { display: block; }
+    .panel-title { font-size: 1.375rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .panel-desc { color: var(--text-secondary); margin-bottom: 1.75rem; font-size: 0.9375rem; }
+    /* Avatar */
+    .avatar-row { display: flex; align-items: center; gap: 1.5rem; padding: 1.25rem; background: var(--bg-secondary); border-radius: 0.875rem; margin-bottom: 1.75rem; }
+    .avatar-img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid white; box-shadow: var(--shadow-md); object-fit: cover; }
+    .avatar-info h3 { font-weight: 600; margin-bottom: 0.25rem; }
+    .avatar-info p { font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.875rem; }
+    .avatar-btns { display: flex; gap: 0.625rem; }
+    .btn-upload { padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; }
+    .btn-upload:hover { background: var(--primary-dark); }
+    .btn-remove-photo { padding: 0.5rem 1rem; background: white; color: var(--danger); border: 2px solid var(--danger); border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; }
+    .btn-remove-photo:hover { background: var(--danger); color: white; }
+    /* Form */
+    .form-group { margin-bottom: 1.375rem; }
+    .form-label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9375rem; }
+    .form-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 1rem; transition: border-color 0.2s; box-sizing: border-box; }
+    .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    .form-input:disabled { background: var(--bg-secondary); cursor: not-allowed; color: var(--text-secondary); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-actions { display: flex; gap: 1rem; margin-top: 1.75rem; padding-top: 1.75rem; border-top: 1px solid var(--border); }
+    .btn-save { padding: 0.75rem 2rem; background: var(--primary); color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+    .btn-save:hover { background: var(--primary-dark); }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-cancel { padding: 0.75rem 2rem; background: white; color: var(--text-secondary); border: 2px solid var(--border); border-radius: 0.5rem; font-weight: 600; cursor: pointer; }
+    .btn-cancel:hover { border-color: var(--primary); color: var(--primary); }
+    /* Toggle */
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-radius: 0.75rem; background: var(--bg-secondary); margin-bottom: 0.875rem; }
+    .toggle-info h4 { font-weight: 600; margin-bottom: 0.2rem; font-size: 0.9375rem; }
+    .toggle-info p { font-size: 0.8125rem; color: var(--text-secondary); }
+    .toggle-switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #D1D5DB; border-radius: 26px; transition: 0.3s; }
+    .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+    input:checked + .toggle-slider { background: var(--primary); }
+    input:checked + .toggle-slider:before { transform: translateX(22px); }
+    /* Danger zone */
+    .danger-zone { margin-top: 2rem; padding: 1.5rem; border: 2px solid var(--danger); border-radius: 0.75rem; background: rgba(239,68,68,0.04); }
+    .danger-title { color: var(--danger); font-weight: 700; margin-bottom: 0.375rem; }
+    .danger-desc { color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9375rem; }
+    .btn-danger { padding: 0.75rem 1.5rem; background: var(--danger); color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; }
+    .btn-danger:hover { background: #DC2626; }
+    /* Password strength */
+    .pw-strength { height: 4px; border-radius: 2px; margin-top: 0.5rem; transition: width 0.3s, background 0.3s; }
+    .pw-hint { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.375rem; }
+    @media (max-width: 768px) {
+      .account-grid { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .form-row { grid-template-columns: 1fr; }
+      .avatar-row { flex-direction: column; text-align: center; }
+      .avatar-btns { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo"><span class="logo-icon">🌿</span><span class="logo-text">Comfort Counsel</span></div>
+    <button class="nav-toggle" id="nav-toggle"><span></span><span></span><span></span></button>
+    <div class="nav-menu" id="nav-menu">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="find-counselors.html" class="nav-link">Find Counselors</a>
+      <a href="post-problem.html" class="nav-link">Post a Problem</a>
+      <a href="my-sessions.html" class="nav-link" id="nav-sessions" style="display:none">My Sessions</a>
+      <a href="account.html" class="nav-link active" id="nav-account">My Account</a>
+      <button class="nav-link-btn" onclick="ComfortCounsel.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="account-wrap">
+  <h1 class="page-title">Account Settings</h1>
+  <p class="page-subtitle">Manage your profile, security, and preferences</p>
+
+  <div class="account-grid">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <ul class="sidebar-menu">
+        <li><div class="sidebar-link active" data-panel="profile"><span class="sidebar-icon">👤</span> Profile</div></li>
+        <li><div class="sidebar-link" data-panel="security"><span class="sidebar-icon">🔒</span> Security</div></li>
+        <li><div class="sidebar-link" data-panel="notifications"><span class="sidebar-icon">🔔</span> Notifications</div></li>
+        <li><div class="sidebar-link" data-panel="privacy"><span class="sidebar-icon">🛡️</span> Privacy</div></li>
+      </ul>
+    </div>
+
+    <div>
+      <!-- PROFILE PANEL -->
+      <div class="panel active" id="panel-profile">
+        <h2 class="panel-title">Profile Information</h2>
+        <p class="panel-desc">Update your name, email, and profile picture</p>
+
+        <div class="avatar-row">
+          <img id="avatar-img" src="" alt="Profile" class="avatar-img" />
+          <div class="avatar-info">
+            <h3>Profile Picture</h3>
+            <p>JPG, PNG or WebP · Max 2MB</p>
+            <div class="avatar-btns">
+              <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadAvatar(this)" />
+              <button class="btn-upload" onclick="document.getElementById('avatar-file').click()">📷 Upload Photo</button>
+              <button class="btn-remove-photo" onclick="removeAvatar()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <form id="profile-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-input" id="first-name" placeholder="First name" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input type="text" class="form-input" id="last-name" placeholder="Last name" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" id="email" placeholder="you@example.com" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" class="form-input" id="phone" placeholder="0XXXXXXXXX" maxlength="10" />
+            <p class="pw-hint">10-digit Ghana number (optional)</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Member Since</label>
+            <input type="text" class="form-input" id="member-since" disabled />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-save" id="profile-save-btn">Save Changes</button>
+            <button type="button" class="btn-cancel" onclick="loadProfile()">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- SECURITY PANEL -->
+      <div class="panel" id="panel-security">
+        <h2 class="panel-title">Security</h2>
+        <p class="panel-desc">Change your password to keep your account secure</p>
+
+        <form id="password-form">
+          <div class="form-group">
+            <label class="form-label">Current Password</label>
+            <div style="position:relative">
+              <input type="password" class="form-input" id="current-password" placeholder="Enter current password" required style="padding-right:3rem" />
+              <button type="button" onclick="togglePw('current-password',this)" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.125rem;color:var(--text-secondary)">👁️</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-input" id="new-password" placeholder="At least 6 characters" required oninput="checkPasswordStrength(this.value)" />
+            <div class="pw-strength" id="pw-strength-bar" style="width:0;background:#E5E7EB"></div>
+            <p class="pw-hint" id="pw-strength-text">Enter a new password</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" class="form-input" id="confirm-password" placeholder="Repeat new password" required />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-save" id="pw-save-btn">Update Password</button>
+            <button type="button" class="btn-cancel" onclick="document.getElementById('password-form').reset()">Cancel</button>
+          </div>
+        </form>
+
+        <div class="danger-zone">
+          <h3 class="danger-title">⚠️ Danger Zone</h3>
+          <p class="danger-desc">Permanently delete your account and all associated data. This cannot be undone.</p>
+          <button class="btn-danger" onclick="deleteAccount()">Delete My Account</button>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS PANEL -->
+      <div class="panel" id="panel-notifications">
+        <h2 class="panel-title">Notification Preferences</h2>
+        <p class="panel-desc">Choose what you want to be notified about</p>
+
+        <div class="toggle-row">
+          <div class="toggle-info"><h4>Email Notifications</h4><p>Session confirmations and updates via email</p></div>
+          <label class="toggle-switch"><input type="checkbox" id="notif-email" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><h4>Session Reminders</h4><p>Reminders before your upcoming sessions</p></div>
+          <label class="toggle-switch"><input type="checkbox" id="notif-reminders" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <!-- MESSAGING NOT IMPLEMENTED YET - COMMENTED OUT
+        <div class="toggle-row">
+          <div class="toggle-info"><h4>New Messages</h4><p>Alerts when you receive new messages</p></div>
+          <label class="toggle-switch"><input type="checkbox" id="notif-messages" checked /><span class="toggle-slider"></span></label>
+        </div>
+        -->
+        <!-- MARKETING NOT IMPLEMENTED YET - COMMENTED OUT  
+        <div class="toggle-row">
+          <div class="toggle-info"><h4>Marketing & Promotions</h4><p>News about features and special offers</p></div>
+          <label class="toggle-switch"><input type="checkbox" id="notif-marketing" /><span class="toggle-slider"></span></label>
+        </div>
+        -->
+        <div class="form-actions">
+          <button class="btn-save" onclick="saveNotifications()">Save Preferences</button>
+        </div>
+      </div>
+
+      <!-- PRIVACY PANEL -->
+      <div class="panel" id="panel-privacy">
+        <h2 class="panel-title">Privacy Settings</h2>
+        <p class="panel-desc">Control who can see your information</p>
+
+        <div class="toggle-row">
+          <div class="toggle-info"><h4>Profile Visibility</h4><p>Allow counselors to view your profile</p></div>
+          <label class="toggle-switch"><input type="checkbox" id="priv-profile" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><h4>Show Online Status</h4><p>Let others see when you're active</p></div>
+          <label class="toggle-switch"><input type="checkbox" id="priv-online" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <!-- SHARED SESSION HISTORY NOT IMPLEMENTED YET - COMMENTED OUT
+        <div class="toggle-row">
+          <div class="toggle-info"><h4>Share Session History</h4><p>Allow counselors to see your past sessions</p></div>
+          <label class="toggle-switch"><input type="checkbox" id="priv-history" /><span class="toggle-slider"></span></label>
+        </div>
+        -->
+        <!-- ANONYMOUS PROBLEM POSTS NOT IMPLEMENTED YET - COMMENTED OUT
+        <div class="toggle-row">
+          <div class="toggle-info"><h4>Anonymous Problem Posts</h4><p>Hide your name when posting problems</p></div>
+          <label class="toggle-switch"><input type="checkbox" id="priv-anonymous" /><span class="toggle-slider"></span></label>
+        </div>
+        -->
+        <div class="form-actions">
+          <button class="btn-save" onclick="savePrivacy()">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+// ── Auth guard ──────────────────────────────────────────────
+if (!ComfortCounsel.requireAuth('login.html')) {
+  // redirecting
+}
+
+// ── Sidebar navigation ──────────────────────────────────────
+document.querySelectorAll('.sidebar-link').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    link.classList.add('active');
+    document.getElementById('panel-' + link.dataset.panel).classList.add('active');
+  });
+});
+
+// ── Load profile from DB ────────────────────────────────────
+async function loadProfile() {
+  try {
+    const profile = await ComfortCounsel.apiRequest('/api/profile');
+    populateForm(profile);
+  } catch (err) {
+    // Fallback to localStorage
+    const user = ComfortCounsel.getCurrentUser();
+    if (user) populateForm(user);
+  }
+}
+
+function populateForm(user) {
+  const parts = (user.name || '').split(' ');
+  document.getElementById('first-name').value = parts[0] || '';
+  document.getElementById('last-name').value = parts.slice(1).join(' ') || '';
+  document.getElementById('email').value = user.email || '';
+  document.getElementById('phone').value = user.phone || user.phone_number || '';
+  if (user.created_at) {
+    document.getElementById('member-since').value = new Date(user.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  // Avatar
+  const avatarEl = document.getElementById('avatar-img');
+  if (user.profile_picture) {
+    avatarEl.src = user.profile_picture;
+  } else {
+    avatarEl.src = ComfortCounsel.getAvatarUrl(user.name || 'User', null, 'list');
+  }
+  // Load saved preferences
+  loadPreferences();
+}
+
+loadProfile();
+
+// ── Profile form save ───────────────────────────────────────
+document.getElementById('profile-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('profile-save-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+
+  const firstName = document.getElementById('first-name').value.trim();
+  const lastName = document.getElementById('last-name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+
+  if (!firstName) { ComfortCounsel.showToast('First name is required', 'error'); btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+  if (!ComfortCounsel.validateEmail(email)) { ComfortCounsel.showToast('Enter a valid email address', 'error'); btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+  if (phone && !/^\d{10}$/.test(phone)) { ComfortCounsel.showToast('Phone must be 10 digits', 'error'); btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+
+  try {
+    const result = await ComfortCounsel.apiRequest('/api/user/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ name: `${firstName} ${lastName}`.trim(), email, phone })
+    });
+    ComfortCounsel.updateUserData({ name: result.user?.name || `${firstName} ${lastName}`.trim(), email });
+    
+    // Only update avatar if no custom photo is uploaded AND the name actually changed
+    const currentAvatar = document.getElementById('avatar-img').src;
+    const isGeneratedAvatar = currentAvatar.includes('ui-avatars.com');
+    const currentUser = ComfortCounsel.getCurrentUser();
+    const nameChanged = currentUser.name !== `${firstName} ${lastName}`.trim();
+    
+    if (isGeneratedAvatar && nameChanged) {
+      document.getElementById('avatar-img').src = ComfortCounsel.getAvatarUrl(`${firstName} ${lastName}`.trim(), null, 'list');
+    }
+    ComfortCounsel.showToast('Profile updated successfully!', 'success');
+  } catch (err) {
+    ComfortCounsel.showToast(err.message || 'Failed to update profile', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Save Changes';
+});
+
+// ── Avatar upload ───────────────────────────────────────────
+async function uploadAvatar(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 2 * 1024 * 1024) { ComfortCounsel.showToast('Image must be under 2MB', 'error'); return; }
+
+  // Preview immediately
+  const reader = new FileReader();
+  reader.onload = e => { document.getElementById('avatar-img').src = e.target.result; };
+  reader.readAsDataURL(file);
+
+  // Upload to server with better error handling
+  try {
+    const formData = new FormData();
+    formData.append('profile_picture', file);
+    const token = localStorage.getItem('cc_token');
+    const res = await fetch('/api/user/avatar', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    
+    // Update user data with new profile picture
+    ComfortCounsel.updateUserData({ profile_picture: data.profile_picture });
+    ComfortCounsel.showToast('Profile photo updated!', 'success');
+    
+    // Clear the file input to allow re-uploading the same file
+    input.value = '';
+  } catch (err) {
+    ComfortCounsel.showToast(err.message || 'Failed to upload photo', 'error');
+    // Revert preview on error
+    const user = ComfortCounsel.getCurrentUser();
+    if (user.profile_picture) {
+      document.getElementById('avatar-img').src = user.profile_picture;
+    } else {
+      document.getElementById('avatar-img').src = ComfortCounsel.getAvatarUrl(user?.name || 'User', null, 'list');
+    }
+  }
+}
+
+// ── Remove avatar ───────────────────────────────────────────
+async function removeAvatar() {
+  if (!confirm('Remove your profile photo?')) return;
+  try {
+    await ComfortCounsel.apiRequest('/api/user/avatar', { method: 'DELETE' });
+    const user = ComfortCounsel.getCurrentUser();
+    document.getElementById('avatar-img').src = ComfortCounsel.getAvatarUrl(user?.name || 'User', null, 'list');
+    ComfortCounsel.updateUserData({ profile_picture: null });
+    ComfortCounsel.showToast('Profile photo removed', 'success');
+  } catch (err) {
+    ComfortCounsel.showToast(err.message || 'Failed to remove photo', 'error');
+  }
+}
+
+// ── Password change ─────────────────────────────────────────
+document.getElementById('password-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('pw-save-btn');
+  const current = document.getElementById('current-password').value;
+  const newPw = document.getElementById('new-password').value;
+  const confirm = document.getElementById('confirm-password').value;
+
+  if (newPw.length < 6) { ComfortCounsel.showToast('New password must be at least 6 characters', 'error'); return; }
+  if (newPw !== confirm) { ComfortCounsel.showToast('Passwords do not match', 'error'); return; }
+
+  btn.disabled = true; btn.textContent = 'Updating...';
+  try {
+    await ComfortCounsel.apiRequest('/api/change-password', {
+      method: 'PUT',
+      body: JSON.stringify({ current_password: current, new_password: newPw })
+    });
+    ComfortCounsel.showToast('Password updated successfully!', 'success');
+    document.getElementById('password-form').reset();
+    document.getElementById('pw-strength-bar').style.width = '0';
+    document.getElementById('pw-strength-text').textContent = 'Enter a new password';
+  } catch (err) {
+    ComfortCounsel.showToast(err.message || 'Failed to update password', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Update Password';
+});
+
+// ── Password visibility toggle ──────────────────────────────
+function togglePw(inputId, button) {
+  const input = document.getElementById(inputId);
+  const isPassword = input.type === 'password';
+  input.type = isPassword ? 'text' : 'password';
+  button.textContent = isPassword ? '🙈' : '👁️';
+}
+
+// ── Password strength indicator ─────────────────────────────
+function checkPasswordStrength(pw) {
+  const bar = document.getElementById('pw-strength-bar');
+  const text = document.getElementById('pw-strength-text');
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const levels = [
+    { w: '20%', c: '#EF4444', t: 'Very weak' },
+    { w: '40%', c: '#F97316', t: 'Weak' },
+    { w: '60%', c: '#F59E0B', t: 'Fair' },
+    { w: '80%', c: '#10B981', t: 'Strong' },
+    { w: '100%', c: '#059669', t: 'Very strong' }
+  ];
+  const lvl = levels[Math.min(score - 1, 4)] || { w: '0', c: '#E5E7EB', t: 'Enter a new password' };
+  bar.style.width = lvl.w; bar.style.background = lvl.c;
+  text.textContent = lvl.t; text.style.color = lvl.c;
+}
+
+// ── Delete account ──────────────────────────────────────────
+async function deleteAccount() {
+  if (!confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
+  const typed = prompt('Type DELETE to confirm:');
+  if (typed !== 'DELETE') { ComfortCounsel.showToast('Account deletion cancelled', 'info'); return; }
+  try {
+    await ComfortCounsel.apiRequest('/api/user/delete', { method: 'DELETE' });
+    ComfortCounsel.removeAuthToken();
+    ComfortCounsel.showToast('Account deleted. Goodbye!', 'success');
+    setTimeout(() => window.location.href = 'index.html', 1500);
+  } catch (err) {
+    ComfortCounsel.showToast(err.message || 'Failed to delete account', 'error');
+  }
+}
+
+// ── Notification & Privacy preferences (localStorage) ───────
+const PREFS_KEY = 'cc_prefs';
+
+function loadPreferences() {
+  const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+  // Notifications
+  if (saved.notif_email !== undefined) document.getElementById('notif-email').checked = saved.notif_email;
+  if (saved.notif_reminders !== undefined) document.getElementById('notif-reminders').checked = saved.notif_reminders;
+  // Messaging features commented out - skip loading
+  // if (saved.notif_messages !== undefined) document.getElementById('notif-messages').checked = saved.notif_messages;
+  // if (saved.notif_marketing !== undefined) document.getElementById('notif-marketing').checked = saved.notif_marketing;
+  
+  // Privacy
+  if (saved.priv_profile !== undefined) document.getElementById('priv-profile').checked = saved.priv_profile;
+  if (saved.priv_online !== undefined) document.getElementById('priv-online').checked = saved.priv_online;
+  // Privacy features commented out - skip loading
+  // if (saved.priv_history !== undefined) document.getElementById('priv-history').checked = saved.priv_history;
+  // if (saved.priv_anonymous !== undefined) document.getElementById('priv-anonymous').checked = saved.priv_anonymous;
+}
+
+function saveNotifications() {
+  const prefs = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+  prefs.notif_email = document.getElementById('notif-email').checked;
+  prefs.notif_reminders = document.getElementById('notif-reminders').checked;
+  // Messaging features commented out - skip saving
+  // prefs.notif_messages = document.getElementById('notif-messages').checked;
+  // prefs.notif_marketing = document.getElementById('notif-marketing').checked;
+  localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  ComfortCounsel.showToast('Notification preferences saved!', 'success');
+}
+
+function savePrivacy() {
+  const prefs = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+  prefs.priv_profile = document.getElementById('priv-profile').checked;
+  prefs.priv_online = document.getElementById('priv-online').checked;
+  // Privacy features commented out - skip saving
+  // prefs.priv_history = document.getElementById('priv-history').checked;
+  // prefs.priv_anonymous = document.getElementById('priv-anonymous').checked;
+  localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  ComfortCounsel.showToast('Privacy settings saved!', 'success');
+}
+</script>
+</body>
+</html>

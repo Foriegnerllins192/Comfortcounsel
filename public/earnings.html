@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Earnings - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: var(--bg-secondary); }
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .page-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .page-subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+
+    /* Summary cards */
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+    .summary-card { background: white; border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--border); }
+    .summary-card.highlight { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; border: none; }
+    .summary-label { font-size: 0.8125rem; font-weight: 600; opacity: 0.85; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .summary-value { font-size: 2rem; font-weight: 800; margin-bottom: 0.25rem; }
+    .summary-sub { font-size: 0.875rem; opacity: 0.8; }
+
+    /* Main layout */
+    .earnings-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+    .earn-card { background: white; border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--border); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+    .card-title { font-size: 1.125rem; font-weight: 700; }
+    .filter-select { padding: 0.5rem 0.875rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.875rem; background: white; cursor: pointer; }
+
+    /* Transactions */
+    .txn-item { display: flex; justify-content: space-between; align-items: center; padding: 0.875rem 1rem; border-radius: 0.75rem; background: var(--bg-secondary); margin-bottom: 0.75rem; gap: 1rem; }
+    .txn-item:last-child { margin-bottom: 0; }
+    .txn-left { display: flex; align-items: center; gap: 0.875rem; }
+    .txn-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+    .txn-icon.credit { background: rgba(16,185,129,0.12); }
+    .txn-icon.debit { background: rgba(239,68,68,0.12); }
+    .txn-title { font-weight: 600; font-size: 0.9375rem; margin-bottom: 0.2rem; }
+    .txn-date { font-size: 0.8125rem; color: var(--text-secondary); }
+    .txn-right { text-align: right; flex-shrink: 0; }
+    .txn-amount { font-size: 1.0625rem; font-weight: 700; }
+    .txn-amount.credit { color: #10B981; }
+    .txn-amount.debit { color: var(--danger); }
+    .txn-status { font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 1rem; margin-top: 0.25rem; display: inline-block; }
+    .status-credit { background: rgba(16,185,129,0.1); color: #059669; }
+    .status-debit { background: rgba(239,68,68,0.1); color: var(--danger); }
+
+    /* Wallet / withdraw section */
+    .wallet-box { background: var(--bg-secondary); border-radius: 0.875rem; padding: 1.25rem; margin-bottom: 1.25rem; }
+    .wallet-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; font-size: 0.9375rem; }
+    .wallet-row:not(:last-child) { border-bottom: 1px solid var(--border); }
+    .wallet-label { color: var(--text-secondary); }
+    .wallet-value { font-weight: 700; }
+    .btn-withdraw { width: 100%; padding: 0.875rem; background: var(--primary); color: white; border: none; border-radius: 0.5rem; font-weight: 700; font-size: 1rem; cursor: pointer; transition: var(--transition); margin-bottom: 1.25rem; }
+    .btn-withdraw:hover { background: var(--primary-dark); }
+    .btn-withdraw:disabled { background: #D1D5DB; cursor: not-allowed; }
+
+    /* Commission info */
+    .commission-box { background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 0.75rem; padding: 1rem 1.25rem; font-size: 0.875rem; color: var(--text-secondary); margin-top: 1rem; }
+    .commission-box strong { color: var(--primary); }
+
+    /* Session earnings breakdown */
+    .session-earn-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); font-size: 0.9375rem; }
+    .session-earn-item:last-child { border-bottom: none; }
+    .earn-client { font-weight: 600; }
+    .earn-meta { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.15rem; }
+    .earn-amount { font-weight: 700; color: #10B981; }
+
+    .empty-msg { text-align: center; padding: 2.5rem; color: var(--text-secondary); font-size: 0.9375rem; }
+
+    @media (max-width: 1024px) { .earnings-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) { .summary-grid { grid-template-columns: 1fr 1fr; } .txn-item { flex-direction: column; align-items: flex-start; } .txn-right { text-align: left; } }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo"><span class="logo-icon">🌿</span><span class="logo-text">Comfort Counsel</span></div>
+    <button class="nav-toggle" id="nav-toggle"><span></span><span></span><span></span></button>
+    <div class="nav-menu" id="nav-menu">
+      <a href="counselor-dashboard.html" class="nav-link">Dashboard</a>
+      <a href="client-requests.html" class="nav-link">Client Requests</a>
+      <a href="counselor-sessions.html" class="nav-link">My Sessions</a>
+      <a href="earnings.html" class="nav-link active">Earnings</a>
+      <a href="counselor-profile-edit.html" class="nav-link">Edit Profile</a>
+      <button class="nav-link-btn" onclick="ComfortCounsel.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <h1 class="page-title">Earnings</h1>
+  <p class="page-subtitle">Your income from completed counseling sessions</p>
+
+  <!-- Summary cards -->
+  <div class="summary-grid">
+    <div class="summary-card highlight">
+      <div class="summary-label">Wallet Balance</div>
+      <div class="summary-value" id="stat-balance">—</div>
+      <div class="summary-sub">Available to withdraw</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Total Earned</div>
+      <div class="summary-value" id="stat-total">—</div>
+      <div class="summary-sub">All time</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">This Month</div>
+      <div class="summary-value" id="stat-month">—</div>
+      <div class="summary-sub" id="stat-month-sessions">— sessions</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Completed Sessions</div>
+      <div class="summary-value" id="stat-sessions">—</div>
+      <div class="summary-sub">Total paid sessions</div>
+    </div>
+  </div>
+
+  <div class="earnings-grid">
+    <!-- Transaction history -->
+    <div class="earn-card">
+      <div class="card-header">
+        <h2 class="card-title">Transaction History</h2>
+        <select class="filter-select" id="txn-filter" onchange="filterTransactions()">
+          <option value="all">All Time</option>
+          <option value="month">This Month</option>
+          <option value="last-month">Last Month</option>
+        </select>
+      </div>
+      <div id="txn-list"><div class="empty-msg">Loading transactions...</div></div>
+    </div>
+
+    <!-- Wallet & session breakdown -->
+    <div>
+      <div class="earn-card" style="margin-bottom:1.5rem">
+        <h2 class="card-title" style="margin-bottom:1.25rem">Wallet</h2>
+        <div class="wallet-box">
+          <div class="wallet-row">
+            <span class="wallet-label">Available Balance</span>
+            <span class="wallet-value" id="wallet-balance">—</span>
+          </div>
+          <div class="wallet-row">
+            <span class="wallet-label">Min. Withdrawal</span>
+            <span class="wallet-value">GHS 50</span>
+          </div>
+          <div class="wallet-row">
+            <span class="wallet-label">Processing Time</span>
+            <span class="wallet-value">1–2 business days</span>
+          </div>
+        </div>
+        <button class="btn-withdraw" id="withdraw-btn" onclick="requestWithdrawal()" disabled>
+          Withdraw Funds
+        </button>
+        <div class="commission-box">
+          Platform commission is deducted automatically when a session is completed.<br/>
+          Your tier: <strong id="tier-label">—</strong> · Commission rate: <strong id="commission-label">—</strong>
+        </div>
+      </div>
+
+      <div class="earn-card">
+        <h2 class="card-title" style="margin-bottom:1.25rem">Session Earnings</h2>
+        <div id="session-earn-list"><div class="empty-msg">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+let allTransactions = [];
+let walletBalance = 0;
+
+if (!ComfortCounsel.requireAuth('login.html')) {
+  // redirecting
+} else {
+  const user = ComfortCounsel.getCurrentUser();
+  if (!user || user.role !== 'counselor') {
+    window.location.href = 'index.html';
+  } else {
+    loadEarnings();
+  }
+}
+
+async function loadEarnings() {
+  try {
+    // Load wallet + transactions
+    const [walletData, dashData] = await Promise.all([
+      ComfortCounsel.apiRequest('/api/wallet'),
+      ComfortCounsel.apiRequest('/api/counselors/dashboard/me')
+    ]);
+
+    walletBalance = parseFloat(walletData.balance || 0);
+    allTransactions = walletData.transactions || [];
+
+    // Populate summary stats
+    document.getElementById('stat-balance').textContent = 'GHS ' + walletBalance.toFixed(2);
+    document.getElementById('wallet-balance').textContent = 'GHS ' + walletBalance.toFixed(2);
+
+    // Total earned from payments
+    const totalEarned = parseFloat(dashData.earnings || 0);
+    document.getElementById('stat-total').textContent = 'GHS ' + totalEarned.toFixed(2);
+
+    // Sessions stats
+    const sessions = dashData.sessions || [];
+    const paidSessions = sessions.filter(s => s.payment_status === 'paid');
+    document.getElementById('stat-sessions').textContent = paidSessions.length;
+
+    // This month
+    const now = new Date();
+    const thisMonthSessions = paidSessions.filter(s => {
+      const d = new Date(s.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    const thisMonthEarnings = thisMonthSessions.reduce((sum, s) => {
+      const amount = parseFloat(s.session_amount || 0);
+      const commission = parseFloat(dashData.profile?.commission_rate || 20);
+      return sum + amount * (1 - commission / 100);
+    }, 0);
+    document.getElementById('stat-month').textContent = 'GHS ' + thisMonthEarnings.toFixed(2);
+    document.getElementById('stat-month-sessions').textContent = `${thisMonthSessions.length} session${thisMonthSessions.length !== 1 ? 's' : ''}`;
+
+    // Tier & commission
+    const tier = dashData.profile?.subscription_tier || 'basic';
+    const commRate = dashData.profile?.commission_rate || 20;
+    document.getElementById('tier-label').textContent = tier.charAt(0).toUpperCase() + tier.slice(1);
+    document.getElementById('commission-label').textContent = commRate + '%';
+
+    // Enable withdraw if balance >= 50
+    const withdrawBtn = document.getElementById('withdraw-btn');
+    if (walletBalance >= 50) {
+      withdrawBtn.disabled = false;
+      withdrawBtn.textContent = `Withdraw GHS ${walletBalance.toFixed(2)}`;
+    } else {
+      withdrawBtn.textContent = `Minimum GHS 50 required`;
+    }
+
+    // Render transactions
+    filterTransactions();
+
+    // Session earnings breakdown
+    renderSessionEarnings(paidSessions, commRate);
+
+  } catch (err) {
+    console.error('Earnings load error:', err);
+    ComfortCounsel.showToast('Failed to load earnings data', 'error');
+    document.getElementById('txn-list').innerHTML = `<div class="empty-msg">⚠️ ${err.message}</div>`;
+  }
+}
+
+function filterTransactions() {
+  const filter = document.getElementById('txn-filter').value;
+  const now = new Date();
+
+  let filtered = [...allTransactions];
+
+  if (filter === 'month') {
+    filtered = filtered.filter(t => {
+      const d = new Date(t.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+  } else if (filter === 'last-month') {
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    filtered = filtered.filter(t => {
+      const d = new Date(t.created_at);
+      return d.getMonth() === lastMonth.getMonth() && d.getFullYear() === lastMonth.getFullYear();
+    });
+  }
+
+  renderTransactions(filtered);
+}
+
+function renderTransactions(txns) {
+  const container = document.getElementById('txn-list');
+
+  if (!txns.length) {
+    container.innerHTML = '<div class="empty-msg">No transactions found</div>';
+    return;
+  }
+
+  container.innerHTML = txns.map(t => {
+    const isCredit = t.type === 'credit';
+    const date = new Date(t.created_at).toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });
+    const time = new Date(t.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    const amount = parseFloat(t.amount).toFixed(2);
+
+    return `
+      <div class="txn-item">
+        <div class="txn-left">
+          <div class="txn-icon ${isCredit ? 'credit' : 'debit'}">${isCredit ? '💰' : '📤'}</div>
+          <div>
+            <div class="txn-title">${t.description || (isCredit ? 'Session Payment' : 'Withdrawal')}</div>
+            <div class="txn-date">${date} · ${time}</div>
+          </div>
+        </div>
+        <div class="txn-right">
+          <div class="txn-amount ${isCredit ? 'credit' : 'debit'}">${isCredit ? '+' : '-'}GHS ${amount}</div>
+          <span class="txn-status ${isCredit ? 'status-credit' : 'status-debit'}">${isCredit ? 'Received' : 'Deducted'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderSessionEarnings(sessions, commissionRate) {
+  const container = document.getElementById('session-earn-list');
+
+  if (!sessions.length) {
+    container.innerHTML = '<div class="empty-msg">No completed sessions yet</div>';
+    return;
+  }
+
+  const recent = sessions.slice(0, 8);
+  container.innerHTML = recent.map(s => {
+    const gross = parseFloat(s.session_amount || 0);
+    const commission = gross * (parseFloat(commissionRate) / 100);
+    const net = gross - commission;
+    const date = new Date(s.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+    return `
+      <div class="session-earn-item">
+        <div>
+          <div class="earn-client">${s.user_name || 'Client'}</div>
+          <div class="earn-meta">${date} · GHS ${gross.toFixed(2)} gross · ${commissionRate}% fee</div>
+        </div>
+        <div class="earn-amount">+GHS ${net.toFixed(2)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function requestWithdrawal() {
+  if (walletBalance < 50) {
+    ComfortCounsel.showToast('Minimum withdrawal amount is GHS 50', 'error');
+    return;
+  }
+
+  const amount = prompt(`Enter withdrawal amount (max GHS ${walletBalance.toFixed(2)}):`);
+  if (!amount) return;
+
+  const amountNum = parseFloat(amount);
+  if (isNaN(amountNum) || amountNum < 50 || amountNum > walletBalance) {
+    ComfortCounsel.showToast(`Enter a valid amount between GHS 50 and GHS ${walletBalance.toFixed(2)}`, 'error');
+    return;
+  }
+
+  if (!confirm(`Request withdrawal of GHS ${amountNum.toFixed(2)}? An admin will process this within 1–2 business days.`)) return;
+
+  ComfortCounsel.showToast('Withdrawal request submitted. Admin will process it shortly.', 'success');
+  // Note: actual withdrawal processing is handled by admin
+}
+</script>
+</body>
+</html>

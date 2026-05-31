@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Sessions - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .sessions-page {
+      background: var(--bg-secondary);
+      min-height: 100vh;
+      padding: 2rem 0;
+    }
+    
+    .page-header {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .page-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.125rem;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .tab {
+      padding: 1rem 1.5rem;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: -2px;
+    }
+    
+    .tab:hover {
+      color: var(--primary);
+    }
+    
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .session-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-md);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+      transition: var(--transition);
+    }
+    
+    .session-card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .session-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 3px solid var(--border);
+    }
+    
+    .session-info {
+      flex: 1;
+    }
+    
+    .session-counselor {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+    
+    .session-specialty {
+      color: var(--primary);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    
+    .session-details {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      font-size: 0.9375rem;
+      color: var(--text-secondary);
+    }
+    
+    .session-detail {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .session-detail-icon {
+      font-size: 1.125rem;
+    }
+    
+    .session-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .session-status {
+      padding: 0.5rem 1rem;
+      border-radius: 1.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .status-upcoming {
+      background: #DBEAFE;
+      color: #1E40AF;
+    }
+    
+    .status-completed {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+    
+    .status-cancelled {
+      background: #FEE2E2;
+      color: #991B1B;
+    }
+    
+    .empty-state {
+      background: white;
+      border-radius: 1rem;
+      padding: 4rem 2rem;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+    
+    .empty-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .empty-text {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+      .session-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      
+      .session-avatar {
+        margin: 0 auto;
+      }
+      
+      .session-details {
+        justify-content: center;
+      }
+      
+      .session-actions {
+        width: 100%;
+      }
+      
+      .tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">
+      <span class="logo-icon">🌿</span>
+      <span class="logo-text">Comfort Counsel</span>
+    </div>
+    
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    
+    <div class="nav-menu" id="nav-menu">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="find-counselors.html" class="nav-link">Find Counselors</a>
+      <a href="post-problem.html" class="nav-link">Post a Problem</a>
+      <a href="my-sessions.html" class="nav-link active" id="nav-sessions">My Sessions</a>
+      <a href="account.html" class="nav-link" id="nav-account">My Account</a>
+      <button class="nav-link-btn" id="nav-logout" onclick="ComfortCounsel.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- SESSIONS PAGE -->
+<section class="sessions-page">
+  <div class="container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">My Sessions</h1>
+      <p class="page-subtitle">Manage your counseling sessions</p>
+    </div>
+    
+    <!-- Active Session Banner -->
+    <div id="active-session-banner" style="display:none; background: linear-gradient(135deg, #10B981, #059669); border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem; color: white; box-shadow: 0 4px 15px rgba(16,185,129,0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem;">🟢 Active Session</h3>
+          <p id="active-session-counselor" style="margin: 0 0 0.5rem 0; opacity: 0.9;"></p>
+          <p style="margin: 0; font-size: 0.875rem; opacity: 0.8;">Time remaining: <span id="active-session-timer" style="font-weight: 700;"></span></p>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 0.875rem; opacity: 0.8; margin-bottom: 0.5rem;">Hotline Number</div>
+          <div id="active-session-hotline" style="font-size: 1.75rem; font-weight: 700; letter-spacing: 2px;"></div>
+          <a id="active-session-call-btn" href="#" class="btn" style="margin-top: 0.75rem; background: white; color: #059669; font-weight: 700; padding: 0.5rem 1.5rem; border-radius: 2rem; text-decoration: none; display: inline-block;">📞 Call Now</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="upcoming">Upcoming</button>
+      <button class="tab" data-tab="past">Past Sessions</button>
+      <button class="tab" data-tab="cancelled">Cancelled</button>
+    </div>
+    
+    <!-- Upcoming Sessions -->
+    <div class="tab-content active" id="upcoming">
+      <div class="loading-state" style="text-align: center; padding: 2rem;">
+        <p style="color: var(--text-secondary);">Loading sessions...</p>
+      </div>
+    </div>
+    
+    <!-- Past Sessions -->
+    <div class="tab-content" id="past">
+      <div class="loading-state" style="text-align: center; padding: 2rem;">
+        <p style="color: var(--text-secondary);">Loading sessions...</p>
+      </div>
+    </div>
+    
+    <!-- Cancelled Sessions -->
+    <div class="tab-content" id="cancelled">
+      <div class="loading-state" style="text-align: center; padding: 2rem;">
+        <p style="color: var(--text-secondary);">Loading sessions...</p>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3 class="footer-logo">🌿 Comfort Counsel</h3>
+        <p class="footer-description">Professional counseling marketplace connecting clients with verified counselors.</p>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">For Clients</h4>
+        <ul class="footer-links">
+          <li><a href="find-counselors.html">Find Counselors</a></li>
+          <li><a href="post-problem.html">Post a Problem</a></li>
+          <li><a href="#">How It Works</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">For Counselors</h4>
+        <ul class="footer-links">
+          <li><a href="register-counselor.html">Become a Counselor</a></li>
+          <li><a href="#">Pricing Plans</a></li>
+          <li><a href="#">Resources</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">Support</h4>
+        <ul class="footer-links">
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Safety & Trust</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2026 Comfort Counsel. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+// Tab switching
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const tabId = tab.dataset.tab;
+    
+    // Remove active class from all tabs and contents
+    tabs.forEach(t => t.classList.remove('active'));
+    tabContents.forEach(tc => tc.classList.remove('active'));
+    
+    // Add active class to clicked tab and corresponding content
+    tab.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+  });
+});
+
+// Load sessions from API
+async function loadSessions() {
+  try {
+    // Load active session first
+    await loadActiveSession();
+    
+    const sessions = await ComfortCounsel.apiRequest('/api/my-sessions');
+    
+    if (!sessions || sessions.length === 0) {
+      showEmptyStates();
+      return;
+    }
+    
+    // Categorize sessions
+    const now = new Date();
+    
+    const active = sessions.filter(s => 
+      s.payment_status === 'paid' && 
+      s.session_status === 'scheduled' && 
+      new Date(s.expires_at) > now
+    );
+    
+    const past = sessions.filter(s => 
+      s.session_status === 'completed' || 
+      (s.payment_status === 'paid' && s.expires_at && new Date(s.expires_at) <= now)
+    );
+    
+    const cancelled = sessions.filter(s => 
+      s.session_status === 'cancelled' || 
+      s.payment_status === 'failed'
+    );
+    
+    // Display sessions in respective tabs
+    displaySessions('upcoming', active);
+    displaySessions('past', past);
+    displaySessions('cancelled', cancelled);
+    
+  } catch (error) {
+    console.error('Error loading sessions:', error);
+    ComfortCounsel.showToast('Failed to load sessions', 'error');
+    showErrorStates();
+  }
+}
+
+// Load and display active session banner
+async function loadActiveSession() {
+  try {
+    const data = await ComfortCounsel.apiRequest('/api/active-session');
+    
+    if (data && data.active && data.session) {
+      const banner = document.getElementById('active-session-banner');
+      const session = data.session;
+      const hotline = data.hotline;
+      
+      document.getElementById('active-session-counselor').textContent = 
+        `${session.counselor_name} — ${session.category}`;
+      document.getElementById('active-session-hotline').textContent = hotline;
+      document.getElementById('active-session-call-btn').href = `tel:${hotline}`;
+      
+      banner.style.display = 'block';
+      
+      // Start countdown timer
+      startCountdown(new Date(session.expires_at));
+    }
+  } catch (e) {
+    // Active session check is non-critical, ignore errors
+    console.log('No active session or error checking:', e.message);
+  }
+}
+
+// Countdown timer for active session
+function startCountdown(expiresAt) {
+  const timerEl = document.getElementById('active-session-timer');
+  
+  function update() {
+    const now = new Date();
+    const diff = expiresAt - now;
+    
+    if (diff <= 0) {
+      timerEl.textContent = 'Expired';
+      document.getElementById('active-session-banner').style.display = 'none';
+      return;
+    }
+    
+    const mins = Math.floor(diff / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    timerEl.textContent = `${mins}m ${secs}s`;
+    setTimeout(update, 1000);
+  }
+  
+  update();
+}
+
+// Display sessions in a tab
+function displaySessions(tabId, sessions) {
+  const container = document.getElementById(tabId);
+  
+  if (sessions.length === 0) {
+    container.innerHTML = createEmptyState(tabId);
+    return;
+  }
+  
+  container.innerHTML = sessions.map(session => createSessionCard(session, tabId)).join('');
+}
+
+// Create session card HTML
+function createSessionCard(session, type) {
+  const counselorName = session.counselor_name || 'Counselor';
+  const category = session.category || 'Counseling';
+  const createdDate = new Date(session.created_at);
+  const expiresDate = session.expires_at ? new Date(session.expires_at) : null;
+  const price = session.session_amount || 80;
+  
+  let statusClass = 'status-upcoming';
+  let statusText = 'Upcoming';
+  let actions = '';
+  let hotlineHTML = '';
+  
+  if (type === 'upcoming') {
+    statusClass = 'status-upcoming';
+    statusText = 'Scheduled';
+    actions = `
+      <button class="btn btn-primary btn-sm" onclick="window.location.href='counselor-profile.html?id=${session.counselor_id}'">View Counselor</button>
+    `;
+  } else if (type === 'past') {
+    statusClass = 'status-completed';
+    statusText = session.session_status === 'completed' ? 'Completed' : 'Expired';
+    actions = `
+      <button class="btn btn-outline btn-sm" onclick="window.location.href='counselor-profile.html?id=${session.counselor_id}'">Book Again</button>
+    `;
+  } else if (type === 'cancelled') {
+    statusClass = 'status-cancelled';
+    statusText = 'Cancelled';
+    actions = `
+      <button class="btn btn-outline btn-sm" onclick="window.location.href='find-counselors.html'">Find Counselor</button>
+    `;
+  }
+  
+  return `
+    <div class="session-card">
+      <img src="${ComfortCounsel.getAvatarUrl(counselorName, null, 'list')}" 
+           alt="${counselorName}" 
+           class="session-avatar" />
+      
+      <div class="session-info">
+        <h3 class="session-counselor">${counselorName}</h3>
+        <p class="session-specialty">${category}</p>
+        
+        <div class="session-details">
+          <div class="session-detail">
+            <span class="session-detail-icon">📅</span>
+            <span>${ComfortCounsel.formatDate(createdDate)}</span>
+          </div>
+          ${expiresDate ? `
+          <div class="session-detail">
+            <span class="session-detail-icon">⏰</span>
+            <span>Expires: ${ComfortCounsel.formatDate(expiresDate)}</span>
+          </div>
+          ` : ''}
+          <div class="session-detail">
+            <span class="session-detail-icon">💰</span>
+            <span>GHS ${parseFloat(price).toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="session-actions">
+        <span class="session-status ${statusClass}">${statusText}</span>
+        ${actions}
+      </div>
+    </div>
+  `;
+}
+
+// Create empty state for a tab
+function createEmptyState(tabId) {
+  let title = 'No Sessions';
+  let text = 'You don\'t have any sessions yet.';
+  let icon = '📅';
+  
+  if (tabId === 'upcoming') {
+    title = 'No Upcoming Sessions';
+    text = 'You don\'t have any scheduled sessions.';
+  } else if (tabId === 'past') {
+    title = 'No Past Sessions';
+    text = 'You haven\'t completed any sessions yet.';
+  } else if (tabId === 'cancelled') {
+    title = 'No Cancelled Sessions';
+    text = 'You haven\'t cancelled any sessions.';
+  }
+  
+  return `
+    <div class="empty-state">
+      <div class="empty-icon">${icon}</div>
+      <h2 class="empty-title">${title}</h2>
+      <p class="empty-text">${text}</p>
+      <a href="find-counselors.html" class="btn btn-primary">Find a Counselor</a>
+    </div>
+  `;
+}
+
+// Show empty states for all tabs
+function showEmptyStates() {
+  displaySessions('upcoming', []);
+  displaySessions('past', []);
+  displaySessions('cancelled', []);
+}
+
+// Show error states
+function showErrorStates() {
+  const errorHTML = `
+    <div style="text-align: center; padding: 2rem;">
+      <p style="color: var(--danger);">Failed to load sessions. Please try again later.</p>
+    </div>
+  `;
+  
+  document.getElementById('upcoming').innerHTML = errorHTML;
+  document.getElementById('past').innerHTML = errorHTML;
+  document.getElementById('cancelled').innerHTML = errorHTML;
+}
+
+// Check if user is logged in and load sessions
+if (!ComfortCounsel.requireAuth()) {
+  // Will redirect to login if not authenticated
+} else {
+  // Load sessions if authenticated
+  loadSessions();
+}</script>
+
+</body>
+</html>
+

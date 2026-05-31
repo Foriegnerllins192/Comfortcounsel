@@ -3,176 +3,395 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel – Comfort Counsel</title>
+  <title>Admin Dashboard - Comfort Counsel</title>
   <link rel="stylesheet" href="style.css" />
   <script src="api.js"></script>
-  <style>
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-    .action-btn { padding: .35rem .85rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: .8rem; }
-    .approve-btn { background: #d1fae5; color: #065f46; }
-    .approve-btn:hover { background: #a7f3d0; }
-    .reject-btn { background: #fee2e2; color: #991b1b; }
-    .reject-btn:hover { background: #fecaca; }
-    .empty-state { text-align: center; padding: 2rem; color: var(--muted); }
-    .wallet-card { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
-    .wallet-card .balance { font-size: 2.5rem; font-weight: 700; margin: .5rem 0; }
-    .wallet-card .label { opacity: .8; font-size: .9rem; }
-    .txn-type-credit { color: #6ee7b7; font-weight: 600; }
-    .txn-type-debit { color: #fca5a5; font-weight: 600; }
-  </style>
 </head>
 <body>
 
-<div class="dash-topbar" id="dash-topbar">
-  <button class="dash-menu-btn" id="dash-menu-btn" aria-label="Open menu">
-    <span></span><span></span><span></span>
-  </button>
-  <div class="topbar-logo">⚕️ Admin Panel</div>
-</div>
-<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<!-- Mobile Menu Toggle -->
+<button class="admin-mobile-toggle" id="adminMobileToggle" aria-label="Toggle menu">
+  <span style="font-size: 1.5rem;">☰</span>
+</button>
 
-<div class="dashboard">
-  <aside class="sidebar" id="sidebar">
-    <button class="sidebar-close" id="sidebar-close" aria-label="Close menu">✕</button>
-    <div class="sidebar-logo">⚕️ Comfort Counsel</div>
-    <nav class="sidebar-nav">
-      <a href="#" class="active" data-tab="overview">📊 Overview</a>
-      <a href="#" data-tab="payouts">💸 Payouts</a>
-      <a href="#" data-tab="counselors">👤 Counselors</a>
-      <a href="#" data-tab="users">👥 Users</a>
-      <a href="#" data-tab="sessions">📅 Sessions</a>
-      <a href="#" data-tab="payments">💳 Payments</a>
-      <a href="#" data-tab="wallet">💰 My Wallet</a>
-      <a href="#" data-tab="admins">🔐 Manage Admins</a>
+<!-- Mobile Overlay -->
+<div class="admin-mobile-overlay" id="adminMobileOverlay"></div>
+
+<div class="admin-dashboard">
+  
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-header">
+      <div class="admin-logo">
+        <span class="admin-logo-icon">⚕️</span>
+        <span>Comfort Counsel</span>
+      </div>
+    </div>
+    
+    <nav class="admin-nav">
+      <div class="admin-nav-item active" data-section="overview">
+        <span class="admin-nav-icon">📊</span>
+        <span>Overview</span>
+      </div>
+      <div class="admin-nav-item" data-section="payouts">
+        <span class="admin-nav-icon">💸</span>
+        <span>Payouts</span>
+      </div>
+      <div class="admin-nav-item" data-section="counselors">
+        <span class="admin-nav-icon">👤</span>
+        <span>Counselors</span>
+      </div>
+      <div class="admin-nav-item" data-section="users">
+        <span class="admin-nav-icon">👥</span>
+        <span>Users</span>
+      </div>
+      <div class="admin-nav-item" data-section="sessions">
+        <span class="admin-nav-icon">📅</span>
+        <span>Sessions</span>
+      </div>
+      <div class="admin-nav-item" data-section="payments">
+        <span class="admin-nav-icon">💳</span>
+        <span>Payments</span>
+      </div>
+      <div class="admin-nav-item" data-section="wallet">
+        <span class="admin-nav-icon">💰</span>
+        <span>My Wallet</span>
+      </div>
+      <div class="admin-nav-item" data-section="admins">
+        <span class="admin-nav-icon">🔐</span>
+        <span>Manage Admins</span>
+      </div>
     </nav>
-    <div style="padding-top:1.5rem;">
-      <button class="btn btn-outline" id="logoutBtn" style="width:100%;color:#fff;border-color:rgba(255,255,255,.4)">Logout</button>
+    
+    <div class="admin-sidebar-footer">
+      <button class="btn btn-outline" id="adminLogoutBtn" style="width:100%;color:#fff;border-color:rgba(255,255,255,.4)">
+        Logout
+      </button>
     </div>
   </aside>
 
-  <main class="main-content">
-
-    <div class="tab-panel active" id="tab-overview">
-      <div class="page-header"><h2>Dashboard Overview</h2></div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-value" id="statUsers">–</div><div class="stat-label">Total Users</div></div>
-        <div class="stat-card"><div class="stat-value" id="statCounselors">–</div><div class="stat-label">Counselors</div></div>
-        <div class="stat-card"><div class="stat-value" id="statPending">–</div><div class="stat-label">Pending Approvals</div></div>
-        <div class="stat-card"><div class="stat-value" id="statSessions">–</div><div class="stat-label">Total Sessions</div></div>
-        <div class="stat-card"><div class="stat-value" id="statTotalCollected" style="color:var(--accent)">–</div><div class="stat-label">Total Collected</div></div>
-        <div class="stat-card"><div class="stat-value" id="statPlatformCut" style="color:var(--success)">–</div><div class="stat-label">Platform Revenue</div></div>
-        <div class="stat-card"><div class="stat-value" id="statCounselorShare" style="color:#6366f1">–</div><div class="stat-label">Paid to Counselors</div></div>
-        <div class="stat-card"><div class="stat-value" id="statPendingPayouts" style="color:var(--danger)">–</div><div class="stat-label">Pending Payouts</div></div>
+  <!-- Main Content -->
+  <main class="admin-main">
+    
+    <!-- Header -->
+    <div class="admin-header">
+      <div>
+        <h1 class="admin-header-title">Admin Dashboard</h1>
+        <p class="admin-header-subtitle">Welcome back! Here's what's happening today.</p>
       </div>
-      <div id="revenue-summary"></div>
-      <div class="table-card">
-        <h3 style="margin-bottom:1rem">Pending Counselor Approvals</h3>
-        <div class="overflow-table"><table id="overviewPendingTable">
-          <thead><tr><th>Name</th><th>Email</th><th>Category</th><th>Location</th><th>Actions</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-      </div>
-    </div>
-
-    <div class="tab-panel" id="tab-payouts">
-      <div class="page-header"><h2>Counselor Payouts</h2></div>
-      <div id="payout-alert"></div>
-      <div class="table-card" style="margin-bottom:1.5rem">
-        <h3 style="margin-bottom:1rem">⏳ Pending Payouts</h3>
-        <div class="overflow-table"><table id="pendingPayoutsTable">
-          <thead><tr><th>Counselor</th><th>Email</th><th>Phone</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-      </div>
-      <div class="table-card">
-        <h3 style="margin-bottom:1rem">✅ Paid History</h3>
-        <div class="overflow-table"><table id="paidPayoutsTable">
-          <thead><tr><th>Counselor</th><th>Email</th><th>Amount</th><th>Note</th><th>Paid At</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-      </div>
-    </div>
-
-    <div class="tab-panel" id="tab-counselors">
-      <div class="page-header"><h2>All Counselors</h2></div>
-      <div class="tab-bar">
-        <button class="tab-btn active" data-filter="pending">Pending</button>
-        <button class="tab-btn" data-filter="approved">Approved</button>
-        <button class="tab-btn" data-filter="rejected">Rejected</button>
-      </div>
-      <div class="table-card">
-        <div class="overflow-table"><table id="counselorsTable">
-          <thead><tr><th>Name</th><th>Email</th><th>Category</th><th>Location</th><th>Exp.</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-      </div>
-    </div>
-
-    <div class="tab-panel" id="tab-users">
-      <div class="page-header"><h2>All Users</h2></div>
-      <div class="table-card">
-        <div class="overflow-table"><table id="usersTable">
-          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-      </div>
-    </div>
-
-    <div class="tab-panel" id="tab-sessions">
-      <div class="page-header"><h2>All Sessions</h2></div>
-      <div class="table-card">
-        <div class="overflow-table"><table id="sessionsTable">
-          <thead><tr><th>User</th><th>Counselor</th><th>Category</th><th>Payment</th><th>Status</th><th>Date</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-      </div>
-    </div>
-
-    <div class="tab-panel" id="tab-payments">
-      <div class="page-header"><h2>All Payments</h2></div>
-      <div class="table-card">
-        <div class="overflow-table"><table id="paymentsTable">
-          <thead><tr><th>User</th><th>Email</th><th>Amount</th><th>Reference</th><th>Status</th><th>Date</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-      </div>
-    </div>
-
-    <div class="tab-panel" id="tab-wallet">
-      <div class="page-header"><h2>Admin Wallet</h2></div>
-      <div class="wallet-card">
-        <div class="label">Platform Earnings Balance</div>
-        <div class="balance" id="walletBalance">–</div>
-        <div class="label">GH₵15 credited per completed session</div>
-      </div>
-      <div class="table-card">
-        <h3 style="margin-bottom:1rem">Transaction History</h3>
-        <div class="overflow-table"><table id="walletTxnTable">
-          <thead><tr><th>Description</th><th>Amount</th><th>Type</th><th>Date</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-      </div>
-    </div>
-
-    <div class="tab-panel" id="tab-admins">
-      <div class="page-header"><h2>Manage Admins</h2></div>
-      <div class="table-card" style="margin-bottom:1.5rem">
-        <h3 style="margin-bottom:1rem">Add New Admin</h3>
-        <div id="admin-form-alert"></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;align-items:end">
-          <div class="form-group" style="margin:0"><label>Name</label><input type="text" id="new-admin-name" placeholder="Full name" /></div>
-          <div class="form-group" style="margin:0"><label>Email</label><input type="email" id="new-admin-email" placeholder="email@example.com" /></div>
-          <div class="form-group" style="margin:0"><label>Password</label><input type="password" id="new-admin-pass" placeholder="Password" /></div>
-          <button class="btn btn-primary" id="addAdminBtn">Add Admin</button>
+      <div class="admin-user-info">
+        <div class="admin-user-avatar" id="adminUserAvatar">A</div>
+        <div>
+          <div style="font-weight:600;font-size:0.875rem" id="adminUserName">Admin</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary)">Administrator</div>
         </div>
       </div>
-      <div class="table-card">
-        <h3 style="margin-bottom:1rem">Current Admins</h3>
-        <div class="overflow-table"><table id="adminsTable">
-          <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Action</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
+    </div>
+
+    <!-- Overview Section -->
+    <div class="admin-section" id="section-overview">
+      <div class="admin-stats-grid">
+        <div class="admin-stat-card">
+          <div class="admin-stat-header">
+            <div class="admin-stat-icon primary">👥</div>
+          </div>
+          <div class="admin-stat-value" id="statUsers">0</div>
+          <div class="admin-stat-label">Total Users</div>
+        </div>
+        
+        <div class="admin-stat-card">
+          <div class="admin-stat-header">
+            <div class="admin-stat-icon success">👤</div>
+          </div>
+          <div class="admin-stat-value" id="statCounselors">0</div>
+          <div class="admin-stat-label">Counselors</div>
+        </div>
+        
+        <div class="admin-stat-card">
+          <div class="admin-stat-header">
+            <div class="admin-stat-icon warning">⏳</div>
+          </div>
+          <div class="admin-stat-value" id="statPending">0</div>
+          <div class="admin-stat-label">Pending Approvals</div>
+        </div>
+        
+        <div class="admin-stat-card">
+          <div class="admin-stat-header">
+            <div class="admin-stat-icon primary">📅</div>
+          </div>
+          <div class="admin-stat-value" id="statSessions">0</div>
+          <div class="admin-stat-label">Total Sessions</div>
+        </div>
+        
+        <div class="admin-stat-card">
+          <div class="admin-stat-header">
+            <div class="admin-stat-icon warning">💰</div>
+          </div>
+          <div class="admin-stat-value" id="statTotalCollected">GH₵0</div>
+          <div class="admin-stat-label">Total Collected</div>
+        </div>
+        
+        <div class="admin-stat-card">
+          <div class="admin-stat-header">
+            <div class="admin-stat-icon success">📈</div>
+          </div>
+          <div class="admin-stat-value" id="statPlatformCut">GH₵0</div>
+          <div class="admin-stat-label">Platform Revenue</div>
+        </div>
+        
+        <div class="admin-stat-card">
+          <div class="admin-stat-header">
+            <div class="admin-stat-icon primary">💵</div>
+          </div>
+          <div class="admin-stat-value" id="statCounselorShare">GH₵0</div>
+          <div class="admin-stat-label">Paid to Counselors</div>
+        </div>
+        
+        <div class="admin-stat-card">
+          <div class="admin-stat-header">
+            <div class="admin-stat-icon danger">⏰</div>
+          </div>
+          <div class="admin-stat-value" id="statPendingPayouts">0</div>
+          <div class="admin-stat-label">Pending Payouts</div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">Pending Counselor Approvals</h3>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table" id="overviewPendingTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payouts Section -->
+    <div class="admin-section" id="section-payouts" style="display:none">
+      <div id="payoutAlert"></div>
+      
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">⏳ Pending Payouts</h3>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table" id="pendingPayoutsTable">
+            <thead>
+              <tr>
+                <th>Counselor</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">✅ Paid History</h3>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table" id="paidPayoutsTable">
+            <thead>
+              <tr>
+                <th>Counselor</th>
+                <th>Email</th>
+                <th>Amount</th>
+                <th>Note</th>
+                <th>Paid At</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Counselors Section -->
+    <div class="admin-section" id="section-counselors" style="display:none">
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-filter="pending">Pending</button>
+        <button class="admin-tab" data-filter="approved">Approved</button>
+        <button class="admin-tab" data-filter="rejected">Rejected</button>
+      </div>
+      
+      <div class="admin-card">
+        <div class="admin-table-container">
+          <table class="admin-table" id="counselorsTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Exp.</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Section -->
+    <div class="admin-section" id="section-users" style="display:none">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">All Users</h3>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table" id="usersTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sessions Section -->
+    <div class="admin-section" id="section-sessions" style="display:none">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">All Sessions</h3>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table" id="sessionsTable">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Counselor</th>
+                <th>Category</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payments Section -->
+    <div class="admin-section" id="section-payments" style="display:none">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">All Payments</h3>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table" id="paymentsTable">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Amount</th>
+                <th>Reference</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wallet Section -->
+    <div class="admin-section" id="section-wallet" style="display:none">
+      <div class="admin-wallet-card">
+        <div class="admin-wallet-label">Platform Earnings Balance</div>
+        <div class="admin-wallet-balance" id="walletBalance">GH₵0.00</div>
+        <div class="admin-wallet-info">GH₵15 credited per completed session</div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">Transaction History</h3>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table" id="walletTxnTable">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admins Section -->
+    <div class="admin-section" id="section-admins" style="display:none">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">Add New Admin</h3>
+        </div>
+        <div id="adminFormAlert"></div>
+        <div class="admin-form-grid">
+          <div class="admin-form-group">
+            <label class="admin-form-label">Name</label>
+            <input type="text" class="admin-form-input" id="newAdminName" placeholder="Full name" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Email</label>
+            <input type="email" class="admin-form-input" id="newAdminEmail" placeholder="email@example.com" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Password</label>
+            <input type="password" class="admin-form-input" id="newAdminPass" placeholder="Password" />
+          </div>
+          <div class="admin-form-group" style="display:flex;align-items:flex-end">
+            <button class="admin-btn admin-btn-primary" id="addAdminBtn" style="width:100%">Add Admin</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">Current Admins</h3>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table" id="adminsTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Joined</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -180,64 +399,82 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-
+document.addEventListener('DOMContentLoaded', function() {
+  // Auth check
   const token = localStorage.getItem('cc_token');
   const user = JSON.parse(localStorage.getItem('cc_user') || '{}');
-  if (!token || user.role !== 'admin') { window.location.href = '/login.html'; return; }
+  if (!token || user.role !== 'admin') {
+    window.location.href = '/login.html';
+    return;
+  }
 
+  // Set user info
+  document.getElementById('adminUserName').textContent = user.name || 'Admin';
+  document.getElementById('adminUserAvatar').textContent = (user.name || 'A')[0].toUpperCase();
+
+  // API helper
   const api = (path, opts) => apiFetch('/api/admin' + path, opts || {});
   const fmt = d => new Date(d).toLocaleDateString();
-  const empty = (msg) => '<tr><td colspan="10" class="empty-state">' + (msg || 'No records found') + '</td></tr>';
-  const badgeClass = { paid:'approved', success:'approved', approved:'approved', completed:'approved',
-                       active:'approved', rejected:'rejected', failed:'rejected',
-                       pending:'pending', scheduled:'pending', counselor:'counselor', admin:'admin', user:'user' };
-  const badge = s => '<span class="badge badge-' + (badgeClass[s] || 'pending') + '">' + s + '</span>';
+  const empty = (msg) => '<tr><td colspan="10" class="admin-table-empty">' + (msg || 'No records found') + '</td></tr>';
+  
+  const badgeMap = {
+    paid: 'success', success: 'success', approved: 'success', completed: 'success', active: 'success',
+    rejected: 'danger', failed: 'danger',
+    pending: 'warning', scheduled: 'warning',
+    counselor: 'info', admin: 'info', user: 'secondary'
+  };
+  const badge = s => '<span class="admin-badge ' + (badgeMap[s] || 'secondary') + '">' + s + '</span>';
 
-  // Sidebar tab navigation
-  document.querySelectorAll('.sidebar-nav a[data-tab]').forEach(function(link) {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      document.querySelectorAll('.sidebar-nav a').forEach(function(a) { a.classList.remove('active'); });
-      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
-      link.classList.add('active');
-      var tab = link.dataset.tab;
-      document.getElementById('tab-' + tab).classList.add('active');
-      loadTab(tab);
+  // Navigation
+  document.querySelectorAll('.admin-nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+      const section = this.dataset.section;
+      document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+      this.classList.add('active');
+      document.getElementById('section-' + section).style.display = 'block';
+      loadSection(section);
+      if (window.innerWidth <= 768) closeSidebar();
     });
   });
 
   // Counselor filter tabs
-  var currentFilter = 'pending';
-  document.querySelectorAll('[data-filter]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('[data-filter]').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      currentFilter = btn.dataset.filter;
+  let currentFilter = 'pending';
+  document.querySelectorAll('.admin-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      currentFilter = this.dataset.filter;
       loadCounselors();
     });
   });
 
-  document.getElementById('logoutBtn').addEventListener('click', function() {
+  // Mobile menu
+  const sidebar = document.getElementById('adminSidebar');
+  const overlay = document.getElementById('adminMobileOverlay');
+  const toggle = document.getElementById('adminMobileToggle');
+  
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+  }
+  
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+  
+  toggle.addEventListener('click', openSidebar);
+  overlay.addEventListener('click', closeSidebar);
+
+  // Logout
+  document.getElementById('adminLogoutBtn').addEventListener('click', function() {
     localStorage.removeItem('cc_token');
     localStorage.removeItem('cc_user');
     window.location.href = '/login.html';
   });
 
-  // Mobile sidebar
-  var sidebar = document.getElementById('sidebar');
-  var overlay = document.getElementById('sidebar-overlay');
-  function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('open'); }
-  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
-  document.getElementById('dash-menu-btn').addEventListener('click', openSidebar);
-  document.getElementById('sidebar-close').addEventListener('click', closeSidebar);
-  overlay.addEventListener('click', closeSidebar);
-  document.querySelectorAll('.sidebar-nav a').forEach(function(a) {
-    a.addEventListener('click', function() { if (window.innerWidth <= 768) closeSidebar(); });
-  });
-
-  // ── Load functions ──
-
+  // Load functions
   async function loadOverview() {
     try {
       const [users, sessions, payments, pending, payouts] = await Promise.all([
@@ -247,43 +484,16 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('statUsers').textContent = users.length;
       document.getElementById('statSessions').textContent = sessions.length;
       document.getElementById('statPending').textContent = pending.length;
-      document.getElementById('statCounselors').textContent = users.filter(function(u) { return u.role === 'counselor'; }).length;
-
+      document.getElementById('statCounselors').textContent = users.filter(u => u.role === 'counselor').length;
       document.getElementById('statTotalCollected').textContent = 'GH₵' + payouts.total_collected.toFixed(2);
       document.getElementById('statPlatformCut').textContent = 'GH₵' + payouts.platform_cut.toFixed(2);
       document.getElementById('statCounselorShare').textContent = 'GH₵' + payouts.counselor_share.toFixed(2);
       document.getElementById('statPendingPayouts').textContent = payouts.pending_payouts.length;
 
-      var paidSessions = payments.filter(function(p) { return p.status === 'success'; }).length;
-      document.getElementById('revenue-summary').innerHTML =
-        '<div class="table-card" style="margin-bottom:1.5rem">' +
-          '<h3 style="margin-bottom:1rem">💰 Revenue Breakdown</h3>' +
-          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem">' +
-            '<div class="stat-card"><div class="stat-value" style="color:var(--accent)">GH₵' + payouts.total_collected.toFixed(2) + '</div><div class="stat-label">Total Collected</div></div>' +
-            '<div class="stat-card"><div class="stat-value" style="color:var(--success)">GH₵' + payouts.platform_cut.toFixed(2) + '</div><div class="stat-label">Platform Cut (GH₵15/session)</div></div>' +
-            '<div class="stat-card"><div class="stat-value" style="color:#6366f1">GH₵' + payouts.counselor_share.toFixed(2) + '</div><div class="stat-label">Counselor Share (GH₵35/session)</div></div>' +
-            '<div class="stat-card"><div class="stat-value">' + paidSessions + '</div><div class="stat-label">Paid Sessions</div></div>' +
-          '</div>' +
-          (payouts.pending_payouts.length
-            ? '<h4 style="margin-bottom:.75rem">⏳ Pending Counselor Payouts</h4>' +
-              '<div class="overflow-table"><table>' +
-                '<thead><tr><th>Counselor</th><th>Email</th><th>Phone</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead>' +
-                '<tbody>' + payouts.pending_payouts.map(function(p) {
-                  return '<tr><td>' + p.counselor_name + '</td><td>' + p.counselor_email + '</td><td>' + (p.phone_number||'–') + '</td>' +
-                    '<td><strong>GH₵' + parseFloat(p.amount).toFixed(2) + '</strong></td>' +
-                    '<td>' + fmt(p.created_at) + '</td>' +
-                    '<td><button class="action-btn approve-btn" onclick="markPaid(' + p.id + ')">Mark Paid</button></td></tr>';
-                }).join('') +
-                '</tbody></table></div>'
-            : '<p style="color:var(--muted);font-size:.9rem">No pending payouts.</p>') +
-        '</div>';
-
       document.querySelector('#overviewPendingTable tbody').innerHTML = pending.length
-        ? pending.map(function(c) {
-            return '<tr><td>' + c.name + '</td><td>' + c.email + '</td><td>' + c.category + '</td><td>' + (c.location||'–') + '</td>' +
-              '<td><button class="action-btn approve-btn" onclick="decide(' + c.id + ',\'approve\')">Approve</button> ' +
-              '<button class="action-btn reject-btn" onclick="decide(' + c.id + ',\'reject\')">Reject</button></td></tr>';
-          }).join('')
+        ? pending.map(c => '<tr><td>' + c.name + '</td><td>' + c.email + '</td><td>' + c.category + '</td><td>' + (c.location||'–') + '</td>' +
+            '<td><button class="admin-btn admin-btn-success admin-btn-sm" onclick="decide(' + c.id + ',\'approve\')">Approve</button> ' +
+            '<button class="admin-btn admin-btn-danger admin-btn-sm" onclick="decide(' + c.id + ',\'reject\')">Reject</button></td></tr>').join('')
         : empty('No pending approvals');
     } catch (err) {
       console.error('Overview error:', err.message);
@@ -294,20 +504,14 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       const data = await api('/payouts');
       document.querySelector('#pendingPayoutsTable tbody').innerHTML = data.pending_payouts.length
-        ? data.pending_payouts.map(function(p) {
-            return '<tr><td>' + p.counselor_name + '</td><td>' + p.counselor_email + '</td><td>' + (p.phone_number||'–') + '</td>' +
-              '<td><strong>GH₵' + parseFloat(p.amount).toFixed(2) + '</strong></td>' +
-              '<td>' + fmt(p.created_at) + '</td>' +
-              '<td><button class="action-btn approve-btn" onclick="markPaid(' + p.id + ')">Mark Paid</button></td></tr>';
-          }).join('')
+        ? data.pending_payouts.map(p => '<tr><td>' + p.counselor_name + '</td><td>' + p.counselor_email + '</td><td>' + (p.phone_number||'–') + '</td>' +
+            '<td><strong>GH₵' + parseFloat(p.amount).toFixed(2) + '</strong></td><td>' + fmt(p.created_at) + '</td>' +
+            '<td><button class="admin-btn admin-btn-success admin-btn-sm" onclick="markPaid(' + p.id + ')">Mark Paid</button></td></tr>').join('')
         : empty('No pending payouts');
 
       document.querySelector('#paidPayoutsTable tbody').innerHTML = data.paid_history.length
-        ? data.paid_history.map(function(p) {
-            return '<tr><td>' + p.counselor_name + '</td><td>' + p.counselor_email + '</td>' +
-              '<td>GH₵' + parseFloat(p.amount).toFixed(2) + '</td>' +
-              '<td>' + (p.note||'–') + '</td><td>' + fmt(p.paid_at) + '</td></tr>';
-          }).join('')
+        ? data.paid_history.map(p => '<tr><td>' + p.counselor_name + '</td><td>' + p.counselor_email + '</td>' +
+            '<td>GH₵' + parseFloat(p.amount).toFixed(2) + '</td><td>' + (p.note||'–') + '</td><td>' + fmt(p.paid_at) + '</td></tr>').join('')
         : empty('No paid payouts yet');
     } catch (err) {
       console.error('Payouts error:', err.message);
@@ -315,79 +519,72 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   window.markPaid = async function(id) {
-    var note = prompt('Add a payment note (e.g. MoMo reference):', 'Paid via MoMo');
+    const note = prompt('Add a payment note (e.g. MoMo reference):', 'Paid via MoMo');
     if (note === null) return;
-    var alertEl = document.getElementById('payout-alert');
+    const alertEl = document.getElementById('payoutAlert');
     try {
       await api('/payouts/' + id + '/pay', { method: 'PATCH', body: JSON.stringify({ note: note }) });
-      alertEl.innerHTML = '<div class="alert alert-success" style="margin-bottom:1rem">Payout marked as paid.</div>';
+      alertEl.innerHTML = '<div class="admin-alert success">Payout marked as paid.</div>';
+      setTimeout(() => alertEl.innerHTML = '', 3000);
       loadPayouts();
       loadOverview();
     } catch (err) {
-      alertEl.innerHTML = '<div class="alert alert-error" style="margin-bottom:1rem">' + err.message + '</div>';
+      alertEl.innerHTML = '<div class="admin-alert error">' + err.message + '</div>';
     }
   };
 
   async function loadCounselors() {
     try {
       const data = await api('/counselors?status=' + currentFilter);
-      const actionCol = currentFilter === 'pending';
       document.querySelector('#counselorsTable tbody').innerHTML = data.length
-        ? data.map(function(c) {
-            return '<tr>' +
-              '<td>' + c.name + '</td>' +
-              '<td>' + c.email + '</td>' +
-              '<td>' + c.category + '</td>' +
-              '<td>' + (c.location||'–') + '</td>' +
-              '<td>' + c.years_experience + 'y</td>' +
-              '<td>' + badge(c.status) + '</td>' +
-              '<td>' + (actionCol
-                ? '<button class="action-btn approve-btn" onclick="decide(' + c.id + ',\'approve\')">Approve</button> ' +
-                  '<button class="action-btn reject-btn" onclick="decide(' + c.id + ',\'reject\')">Reject</button>'
-                : (c.status === 'approved'
-                    ? '<button class="action-btn reject-btn" onclick="decide(' + c.id + ',\'reject\')">Revoke</button>'
-                    : '<button class="action-btn approve-btn" onclick="decide(' + c.id + ',\'approve\')">Approve</button>')) +
-              '</td></tr>';
-          }).join('')
+        ? data.map(c => '<tr><td>' + c.name + '</td><td>' + c.email + '</td><td>' + c.category + '</td><td>' + (c.location||'–') + '</td>' +
+            '<td>' + c.years_experience + 'y</td><td>' + badge(c.status) + '</td><td>' +
+            (currentFilter === 'pending'
+              ? '<button class="admin-btn admin-btn-success admin-btn-sm" onclick="decide(' + c.id + ',\'approve\')">Approve</button> ' +
+                '<button class="admin-btn admin-btn-danger admin-btn-sm" onclick="decide(' + c.id + ',\'reject\')">Reject</button>'
+              : (c.status === 'approved'
+                  ? '<button class="admin-btn admin-btn-danger admin-btn-sm" onclick="decide(' + c.id + ',\'reject\')">Revoke</button>'
+                  : '<button class="admin-btn admin-btn-success admin-btn-sm" onclick="decide(' + c.id + ',\'approve\')">Approve</button>')) +
+            '</td></tr>').join('')
         : empty('No ' + currentFilter + ' counselors');
-    } catch (err) { console.error(err.message); }
+    } catch (err) {
+      console.error(err.message);
+    }
   }
 
   async function loadUsers() {
     try {
       const users = await api('/users');
       document.querySelector('#usersTable tbody').innerHTML = users.length
-        ? users.map(function(u) {
-            return '<tr><td>' + u.name + '</td><td>' + u.email + '</td><td>' + badge(u.role) + '</td><td>' + fmt(u.created_at) + '</td></tr>';
-          }).join('')
+        ? users.map(u => '<tr><td>' + u.name + '</td><td>' + u.email + '</td><td>' + badge(u.role) + '</td><td>' + fmt(u.created_at) + '</td></tr>').join('')
         : empty();
-    } catch (err) { console.error(err.message); }
+    } catch (err) {
+      console.error(err.message);
+    }
   }
 
   async function loadSessions() {
     try {
       const sessions = await api('/sessions');
       document.querySelector('#sessionsTable tbody').innerHTML = sessions.length
-        ? sessions.map(function(s) {
-            return '<tr><td>' + s.user_name + '</td><td>' + s.counselor_name + '</td><td>' + s.category + '</td>' +
-              '<td>' + badge(s.payment_status) + '</td><td>' + badge(s.session_status) + '</td><td>' + fmt(s.created_at) + '</td></tr>';
-          }).join('')
+        ? sessions.map(s => '<tr><td>' + s.user_name + '</td><td>' + s.counselor_name + '</td><td>' + s.category + '</td>' +
+            '<td>' + badge(s.payment_status) + '</td><td>' + badge(s.session_status) + '</td><td>' + fmt(s.created_at) + '</td></tr>').join('')
         : empty();
-    } catch (err) { console.error(err.message); }
+    } catch (err) {
+      console.error(err.message);
+    }
   }
 
   async function loadPayments() {
     try {
       const payments = await api('/payments');
       document.querySelector('#paymentsTable tbody').innerHTML = payments.length
-        ? payments.map(function(p) {
-            return '<tr><td>' + p.user_name + '</td><td>' + p.email + '</td>' +
-              '<td>GH₵' + parseFloat(p.amount).toFixed(2) + '</td>' +
-              '<td style="font-size:.8rem">' + (p.paystack_reference||'–') + '</td>' +
-              '<td>' + badge(p.status) + '</td><td>' + fmt(p.created_at) + '</td></tr>';
-          }).join('')
+        ? payments.map(p => '<tr><td>' + p.user_name + '</td><td>' + p.email + '</td><td>GH₵' + parseFloat(p.amount).toFixed(2) + '</td>' +
+            '<td style="font-size:0.75rem">' + (p.paystack_reference||'–') + '</td><td>' + badge(p.status) + '</td><td>' + fmt(p.created_at) + '</td></tr>').join('')
         : empty();
-    } catch (err) { console.error(err.message); }
+    } catch (err) {
+      console.error(err.message);
+    }
   }
 
   window.decide = async function(id, action) {
@@ -395,7 +592,9 @@ document.addEventListener('DOMContentLoaded', function () {
       await api('/counselors/' + id, { method: 'PATCH', body: JSON.stringify({ action: action }) });
       loadOverview();
       loadCounselors();
-    } catch (err) { alert(err.message); }
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   async function loadWallet() {
@@ -403,48 +602,49 @@ document.addEventListener('DOMContentLoaded', function () {
       const data = await api('/wallet');
       document.getElementById('walletBalance').textContent = 'GH₵' + parseFloat(data.balance).toFixed(2);
       document.querySelector('#walletTxnTable tbody').innerHTML = data.transactions.length
-        ? data.transactions.map(function(t) {
-            return '<tr><td>' + t.description + '</td>' +
-              '<td>GH₵' + parseFloat(t.amount).toFixed(2) + '</td>' +
-              '<td class="txn-type-' + t.type + '">' + t.type + '</td>' +
-              '<td>' + fmt(t.created_at) + '</td></tr>';
-          }).join('')
+        ? data.transactions.map(t => '<tr><td>' + t.description + '</td><td>GH₵' + parseFloat(t.amount).toFixed(2) + '</td>' +
+            '<td>' + badge(t.type) + '</td><td>' + fmt(t.created_at) + '</td></tr>').join('')
         : empty('No transactions yet');
-    } catch (err) { console.error(err.message); }
+    } catch (err) {
+      console.error(err.message);
+    }
   }
 
   async function loadAdmins() {
     try {
       const data = await api('/admins');
       document.querySelector('#adminsTable tbody').innerHTML = data.length
-        ? data.map(function(a) {
-            return '<tr><td>' + a.name + '</td><td>' + a.email + '</td><td>' + fmt(a.created_at) + '</td>' +
-              '<td>' + (a.id !== user.id
-                ? '<button class="action-btn reject-btn" onclick="removeAdmin(' + a.id + ')">Remove</button>'
-                : '<span style="color:var(--muted);font-size:.85rem">You</span>') + '</td></tr>';
-          }).join('')
+        ? data.map(a => '<tr><td>' + a.name + '</td><td>' + a.email + '</td><td>' + fmt(a.created_at) + '</td><td>' +
+            (a.id !== user.id
+              ? '<button class="admin-btn admin-btn-danger admin-btn-sm" onclick="removeAdmin(' + a.id + ')">Remove</button>'
+              : '<span style="color:var(--text-secondary);font-size:0.875rem">You</span>') + '</td></tr>').join('')
         : empty('No admins found');
-    } catch (err) { console.error(err.message); }
+    } catch (err) {
+      console.error(err.message);
+    }
   }
 
   document.getElementById('addAdminBtn').addEventListener('click', async function() {
-    var name = document.getElementById('new-admin-name').value.trim();
-    var email = document.getElementById('new-admin-email').value.trim();
-    var password = document.getElementById('new-admin-pass').value;
-    var alertEl = document.getElementById('admin-form-alert');
+    const name = document.getElementById('newAdminName').value.trim();
+    const email = document.getElementById('newAdminEmail').value.trim();
+    const password = document.getElementById('newAdminPass').value;
+    const alertEl = document.getElementById('adminFormAlert');
+    
     if (!name || !email || !password) {
-      alertEl.innerHTML = '<div class="alert alert-error" style="margin-bottom:1rem">All fields required.</div>';
+      alertEl.innerHTML = '<div class="admin-alert error">All fields required.</div>';
       return;
     }
+    
     try {
-      await api('/admins', { method: 'POST', body: JSON.stringify({ name: name, email: email, password: password }) });
-      alertEl.innerHTML = '<div class="alert alert-success" style="margin-bottom:1rem">Admin added.</div>';
-      document.getElementById('new-admin-name').value = '';
-      document.getElementById('new-admin-email').value = '';
-      document.getElementById('new-admin-pass').value = '';
+      await api('/admins', { method: 'POST', body: JSON.stringify({ name, email, password }) });
+      alertEl.innerHTML = '<div class="admin-alert success">Admin added successfully.</div>';
+      setTimeout(() => alertEl.innerHTML = '', 3000);
+      document.getElementById('newAdminName').value = '';
+      document.getElementById('newAdminEmail').value = '';
+      document.getElementById('newAdminPass').value = '';
       loadAdmins();
     } catch (err) {
-      alertEl.innerHTML = '<div class="alert alert-error" style="margin-bottom:1rem">' + err.message + '</div>';
+      alertEl.innerHTML = '<div class="admin-alert error">' + err.message + '</div>';
     }
   });
 
@@ -453,23 +653,26 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       await api('/admins/' + id, { method: 'DELETE' });
       loadAdmins();
-    } catch (err) { alert(err.message); }
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  function loadTab(tab) {
-    if (tab === 'overview') loadOverview();
-    else if (tab === 'payouts') loadPayouts();
-    else if (tab === 'counselors') loadCounselors();
-    else if (tab === 'users') loadUsers();
-    else if (tab === 'sessions') loadSessions();
-    else if (tab === 'payments') loadPayments();
-    else if (tab === 'wallet') loadWallet();
-    else if (tab === 'admins') loadAdmins();
+  function loadSection(section) {
+    if (section === 'overview') loadOverview();
+    else if (section === 'payouts') loadPayouts();
+    else if (section === 'counselors') loadCounselors();
+    else if (section === 'users') loadUsers();
+    else if (section === 'sessions') loadSessions();
+    else if (section === 'payments') loadPayments();
+    else if (section === 'wallet') loadWallet();
+    else if (section === 'admins') loadAdmins();
   }
 
+  // Initial load
   loadOverview();
-
-}); // end DOMContentLoaded
+});
 </script>
+
 </body>
 </html>

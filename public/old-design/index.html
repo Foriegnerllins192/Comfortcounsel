@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comfort Counsel - Professional Counseling Marketplace</title>
+  <link rel="stylesheet" href="style-new.css" />
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">
+      <span class="logo-icon">🌿</span>
+      <span class="logo-text">Comfort Counsel</span>
+    </div>
+    
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    
+    <div class="nav-menu" id="nav-menu">
+      <a href="index.html" class="nav-link active">Home</a>
+      <a href="find-counselors-new.html" class="nav-link">Find Counselors</a>
+      <a href="post-problem-new.html" class="nav-link">Post a Problem</a>
+      <a href="my-sessions-new.html" class="nav-link" id="nav-sessions" style="display:none">My Sessions</a>
+      <a href="account-new.html" class="nav-link" id="nav-account" style="display:none">Account</a>
+      <a href="login-new.html" class="nav-link-btn" id="nav-login">Login</a>
+      <a href="register-new.html" class="nav-link-btn btn-outline" id="nav-register">Sign Up</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO SECTION -->
+<section class="hero-section">
+  <div class="hero-container">
+    <div class="hero-content">
+      <h1 class="hero-title">Find Your Perfect Counselor</h1>
+      <p class="hero-subtitle">Professional guidance, emotional support, and advice from verified counselors</p>
+      
+      <!-- SEARCH BAR -->
+      <div class="search-container">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input 
+            type="text" 
+            class="search-input" 
+            placeholder="What do you need help with? (e.g., relationship advice, career guidance...)"
+            id="hero-search"
+          />
+          <button class="search-btn">Search</button>
+        </div>
+        <div class="search-suggestions">
+          <span class="suggestion-label">Popular:</span>
+          <button class="suggestion-tag">Relationship</button>
+          <button class="suggestion-tag">Career</button>
+          <button class="suggestion-tag">Mental Health</button>
+          <button class="suggestion-tag">Family</button>
+        </div>
+      </div>
+      
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-number">500+</div>
+          <div class="stat-label">Verified Counselors</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">10k+</div>
+          <div class="stat-label">Sessions Completed</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">4.8★</div>
+          <div class="stat-label">Average Rating</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES SECTION -->
+<section class="categories-section">
+  <div class="container">
+    <h2 class="section-title">Browse by Category</h2>
+    <p class="section-subtitle">Find the right counselor for your specific needs</p>
+    
+    <div class="categories-grid">
+      <a href="find-counselors-new.html?category=relationship" class="category-card">
+        <div class="category-icon">💑</div>
+        <h3 class="category-name">Relationship</h3>
+        <p class="category-count">120+ counselors</p>
+      </a>
+      
+      <a href="find-counselors-new.html?category=family" class="category-card">
+        <div class="category-icon">👨‍👩‍👧</div>
+        <h3 class="category-name">Family</h3>
+        <p class="category-count">85+ counselors</p>
+      </a>
+      
+      <a href="find-counselors-new.html?category=business" class="category-card">
+        <div class="category-icon">💼</div>
+        <h3 class="category-name">Business</h3>
+        <p class="category-count">95+ counselors</p>
+      </a>
+      
+      <a href="find-counselors-new.html?category=youth" class="category-card">
+        <div class="category-icon">🌱</div>
+        <h3 class="category-name">Youth Life</h3>
+        <p class="category-count">110+ counselors</p>
+      </a>
+      
+      <a href="find-counselors-new.html?category=career" class="category-card">
+        <div class="category-icon">🎯</div>
+        <h3 class="category-name">Career</h3>
+        <p class="category-count">78+ counselors</p>
+      </a>
+      
+      <a href="find-counselors-new.html?category=mental-wellness" class="category-card">
+        <div class="category-icon">🧠</div>
+        <h3 class="category-name">Mental Wellness</h3>
+        <p class="category-count">92+ counselors</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- RECOMMENDED COUNSELORS -->
+<section class="recommended-section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Recommended Counselors</h2>
+        <p class="section-subtitle">Top-rated professionals ready to help you</p>
+      </div>
+      <a href="find-counselors-new.html" class="view-all-link">View All →</a>
+    </div>
+    
+    <div class="counselors-grid" id="recommended-counselors">
+      <!-- Counselor cards will be loaded here -->
+      <div class="counselor-card">
+        <div class="counselor-header">
+          <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=2E7D6B&color=fff&size=200" alt="Sarah Johnson" class="counselor-avatar" />
+          <span class="level-badge level-premium">Premium</span>
+        </div>
+        <div class="counselor-body">
+          <h3 class="counselor-name">Sarah Johnson</h3>
+          <p class="counselor-specialty">Relationship Counseling</p>
+          <div class="counselor-rating">
+            <span class="stars">★★★★★</span>
+            <span class="rating-text">5.0 (124 reviews)</span>
+          </div>
+          <p class="counselor-bio">Helping couples and individuals build stronger relationships for over 8 years.</p>
+          <div class="counselor-footer">
+            <div class="counselor-price">
+              <span class="price-label">Starting at</span>
+              <span class="price-amount">GHS 150</span>
+            </div>
+            <button class="btn-view-profile">View Profile</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="counselor-card">
+        <div class="counselor-header">
+          <img src="https://ui-avatars.com/api/?name=Michael+Owusu&background=2E7D6B&color=fff&size=200" alt="Michael Owusu" class="counselor-avatar" />
+          <span class="level-badge level-standard">Standard</span>
+        </div>
+        <div class="counselor-body">
+          <h3 class="counselor-name">Michael Owusu</h3>
+          <p class="counselor-specialty">Career Counseling</p>
+          <div class="counselor-rating">
+            <span class="stars">★★★★★</span>
+            <span class="rating-text">4.9 (89 reviews)</span>
+          </div>
+          <p class="counselor-bio">Career coach specializing in professional development and job transitions.</p>
+          <div class="counselor-footer">
+            <div class="counselor-price">
+              <span class="price-label">Starting at</span>
+              <span class="price-amount">GHS 120</span>
+            </div>
+            <button class="btn-view-profile">View Profile</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="counselor-card">
+        <div class="counselor-header">
+          <img src="https://ui-avatars.com/api/?name=Ama+Mensah&background=2E7D6B&color=fff&size=200" alt="Ama Mensah" class="counselor-avatar" />
+          <span class="level-badge level-basic">Basic</span>
+        </div>
+        <div class="counselor-body">
+          <h3 class="counselor-name">Ama Mensah</h3>
+          <p class="counselor-specialty">Youth Life Counseling</p>
+          <div class="counselor-rating">
+            <span class="stars">★★★★☆</span>
+            <span class="rating-text">4.7 (45 reviews)</span>
+          </div>
+          <p class="counselor-bio">Passionate about helping young people navigate life's challenges.</p>
+          <div class="counselor-footer">
+            <div class="counselor-price">
+              <span class="price-label">Starting at</span>
+              <span class="price-amount">GHS 80</span>
+            </div>
+            <button class="btn-view-profile">View Profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOP RATED COUNSELORS -->
+<section class="top-rated-section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Top-Rated This Month</h2>
+        <p class="section-subtitle">Counselors with the highest ratings and reviews</p>
+      </div>
+      <a href="find-counselors-new.html?sort=rating" class="view-all-link">View All →</a>
+    </div>
+    
+    <div class="top-rated-list">
+      <div class="top-rated-item">
+        <div class="rank-badge">1</div>
+        <img src="https://ui-avatars.com/api/?name=Dr+Grace+Addo&background=F4A261&color=fff&size=80" alt="Dr. Grace Addo" class="top-rated-avatar" />
+        <div class="top-rated-info">
+          <h4 class="top-rated-name">Dr. Grace Addo <span class="verified-badge">✓</span></h4>
+          <p class="top-rated-specialty">Mental Wellness • Premium</p>
+          <div class="top-rated-stats">
+            <span class="stat">★ 5.0</span>
+            <span class="stat-divider">•</span>
+            <span class="stat">200+ sessions</span>
+            <span class="stat-divider">•</span>
+            <span class="stat">GHS 200/session</span>
+          </div>
+        </div>
+        <button class="btn-contact">Contact</button>
+      </div>
+      
+      <div class="top-rated-item">
+        <div class="rank-badge">2</div>
+        <img src="https://ui-avatars.com/api/?name=Kwame+Asante&background=F4A261&color=fff&size=80" alt="Kwame Asante" class="top-rated-avatar" />
+        <div class="top-rated-info">
+          <h4 class="top-rated-name">Kwame Asante <span class="verified-badge">✓</span></h4>
+          <p class="top-rated-specialty">Business Counseling • Premium</p>
+          <div class="top-rated-stats">
+            <span class="stat">★ 4.9</span>
+            <span class="stat-divider">•</span>
+            <span class="stat">180+ sessions</span>
+            <span class="stat-divider">•</span>
+            <span class="stat">GHS 180/session</span>
+          </div>
+        </div>
+        <button class="btn-contact">Contact</button>
+      </div>
+      
+      <div class="top-rated-item">
+        <div class="rank-badge">3</div>
+        <img src="https://ui-avatars.com/api/?name=Abena+Osei&background=F4A261&color=fff&size=80" alt="Abena Osei" class="top-rated-avatar" />
+        <div class="top-rated-info">
+          <h4 class="top-rated-name">Abena Osei</h4>
+          <p class="top-rated-specialty">Family Counseling • Standard</p>
+          <div class="top-rated-stats">
+            <span class="stat">★ 4.9</span>
+            <span class="stat-divider">•</span>
+            <span class="stat">156+ sessions</span>
+            <span class="stat-divider">•</span>
+            <span class="stat">GHS 140/session</span>
+          </div>
+        </div>
+        <button class="btn-contact">Contact</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-it-works-section">
+  <div class="container">
+    <h2 class="section-title">How It Works</h2>
+    <p class="section-subtitle">Get the support you need in 4 simple steps</p>
+    
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <div class="step-icon">🔍</div>
+        <h3 class="step-title">Browse or Post</h3>
+        <p class="step-description">Search for counselors by category or post your problem and let counselors come to you</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <div class="step-icon">💬</div>
+        <h3 class="step-title">Choose & Connect</h3>
+        <p class="step-description">Review profiles, ratings, and prices. Select the counselor that fits your needs</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <div class="step-icon">📅</div>
+        <h3 class="step-title">Book Session</h3>
+        <p class="step-description">Schedule your session and pay securely. Choose chat, call, or video</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">4</div>
+        <div class="step-icon">⭐</div>
+        <h3 class="step-title">Get Support</h3>
+        <p class="step-description">Have your session and rate your experience to help others</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-content">
+      <h2 class="cta-title">Need Help Right Now?</h2>
+      <p class="cta-subtitle">Post your problem and get responses from qualified counselors within minutes</p>
+      <div class="cta-buttons">
+        <a href="post-problem-new.html" class="btn btn-primary btn-lg">Post a Problem</a>
+        <a href="find-counselors-new.html" class="btn btn-outline btn-lg">Browse Counselors</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COUNSELOR CTA -->
+<section class="counselor-cta-section">
+  <div class="container">
+    <div class="counselor-cta-card">
+      <div class="counselor-cta-content">
+        <h2 class="counselor-cta-title">Are You a Counselor?</h2>
+        <p class="counselor-cta-text">Join our platform and help people while building your practice. Start with a free Basic account and upgrade as you grow.</p>
+        <ul class="counselor-benefits">
+          <li>✓ Flexible schedule - work from anywhere</li>
+          <li>✓ Set your own prices</li>
+          <li>✓ Access to thousands of clients</li>
+          <li>✓ Secure payment processing</li>
+        </ul>
+        <a href="register-counselor.html" class="btn btn-accent btn-lg">Become a Counselor</a>
+      </div>
+      <div class="counselor-cta-image">
+        <div class="cta-image-placeholder">
+          <span class="cta-image-icon">👨‍⚕️</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3 class="footer-logo">🌿 Comfort Counsel</h3>
+        <p class="footer-description">Professional counseling marketplace connecting clients with verified counselors for guidance, support, and advice.</p>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">For Clients</h4>
+        <ul class="footer-links">
+          <li><a href="find-counselors-new.html">Find Counselors</a></li>
+          <li><a href="post-problem-new.html">Post a Problem</a></li>
+          <li><a href="#">How It Works</a></li>
+          <li><a href="#">Pricing</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">For Counselors</h4>
+        <ul class="footer-links">
+          <li><a href="register-counselor.html">Become a Counselor</a></li>
+          <li><a href="#">Pricing Plans</a></li>
+          <li><a href="#">Success Stories</a></li>
+          <li><a href="#">Resources</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4 class="footer-title">Support</h4>
+        <ul class="footer-links">
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Safety & Trust</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2026 Comfort Counsel. All rights reserved.</p>
+      <div class="footer-social">
+        <a href="#" class="social-link">Facebook</a>
+        <a href="#" class="social-link">Twitter</a>
+        <a href="#" class="social-link">Instagram</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="script-new.js"></script>
+</body>
+</html>

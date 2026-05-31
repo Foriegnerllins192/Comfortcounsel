@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Sessions - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: var(--bg-secondary); }
+    .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .page-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .page-subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+    .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 2rem; overflow-x: auto; }
+    .tab { padding: 0.875rem 1.5rem; background: none; border: none; border-bottom: 3px solid transparent; font-weight: 600; color: var(--text-secondary); cursor: pointer; white-space: nowrap; margin-bottom: -2px; transition: color 0.2s; }
+    .tab:hover { color: var(--primary); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .session-card { background: white; border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--border); margin-bottom: 1.25rem; }
+    .session-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 1rem; }
+    .client-row { display: flex; align-items: center; gap: 1rem; }
+    .client-avatar { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--border); }
+    .client-name { font-size: 1.125rem; font-weight: 700; }
+    .client-phone { font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.2rem; }
+    .status-badge { padding: 0.375rem 0.875rem; border-radius: 1.5rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+    .badge-active { background: rgba(16,185,129,0.12); color: #059669; }
+    .badge-scheduled { background: rgba(99,102,241,0.12); color: var(--primary); }
+    .badge-completed { background: rgba(16,185,129,0.12); color: #059669; }
+    .badge-expired { background: rgba(107,114,128,0.12); color: #6B7280; }
+    .badge-cancelled { background: rgba(239,68,68,0.12); color: var(--danger); }
+    .session-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.875rem; padding: 1rem; background: var(--bg-secondary); border-radius: 0.75rem; margin-bottom: 1rem; }
+    .detail-item { display: flex; align-items: center; gap: 0.5rem; }
+    .detail-icon { font-size: 1.125rem; }
+    .detail-label { font-size: 0.75rem; color: var(--text-secondary); }
+    .detail-value { font-weight: 600; font-size: 0.9375rem; }
+    .session-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn-act { padding: 0.5rem 1.125rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; border: none; transition: var(--transition); }
+    .btn-complete { background: #10B981; color: white; }
+    .btn-complete:hover { background: #059669; }
+    .btn-reschedule { background: white; color: var(--primary); border: 2px solid var(--primary); }
+    .btn-reschedule:hover { background: var(--primary); color: white; }
+    .btn-cancel { background: white; color: var(--danger); border: 2px solid var(--danger); }
+    .btn-cancel:hover { background: var(--danger); color: white; }
+    .empty-state { text-align: center; padding: 4rem 2rem; background: white; border-radius: 1rem; border: 1px solid var(--border); }
+    .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .empty-text { color: var(--text-secondary); }
+    /* Reschedule modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+    .modal-box { background: white; border-radius: 1rem; padding: 2rem; width: 100%; max-width: 420px; }
+    .modal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; }
+    .modal-label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9375rem; }
+    .modal-input { width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--border); border-radius: 0.5rem; font-size: 1rem; box-sizing: border-box; }
+    .modal-input:focus { outline: none; border-color: var(--primary); }
+    .modal-hint { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.375rem; }
+    .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+    .modal-actions .btn-act { flex: 1; }
+    .btn-confirm { background: var(--primary); color: white; }
+    .btn-confirm:hover { background: var(--primary-dark); }
+    .btn-modal-cancel { background: white; color: var(--text-secondary); border: 2px solid var(--border); }
+    @media (max-width: 640px) { .session-header { flex-direction: column; } .session-actions .btn-act { flex: 1; } }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo"><span class="logo-icon">🌿</span><span class="logo-text">Comfort Counsel</span></div>
+    <button class="nav-toggle" id="nav-toggle"><span></span><span></span><span></span></button>
+    <div class="nav-menu" id="nav-menu">
+      <a href="counselor-dashboard.html" class="nav-link">Dashboard</a>
+      <a href="client-requests.html" class="nav-link">Client Requests</a>
+      <a href="counselor-sessions.html" class="nav-link active">My Sessions</a>
+      <a href="earnings.html" class="nav-link">Earnings</a>
+      <a href="counselor-profile-edit.html" class="nav-link">Edit Profile</a>
+      <button class="nav-link-btn" onclick="ComfortCounsel.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <h1 class="page-title">My Sessions</h1>
+  <p class="page-subtitle">Manage your counseling sessions with clients</p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="active">Active</button>
+    <button class="tab" data-tab="scheduled">Scheduled</button>
+    <button class="tab" data-tab="completed">Completed</button>
+    <button class="tab" data-tab="expired">Expired / Cancelled</button>
+  </div>
+
+  <div class="tab-content active" id="active"><div style="text-align:center;padding:2rem;color:var(--text-secondary)">Loading...</div></div>
+  <div class="tab-content" id="scheduled"></div>
+  <div class="tab-content" id="completed"></div>
+  <div class="tab-content" id="expired"></div>
+</div>
+
+<!-- Reschedule Modal -->
+<div class="modal-overlay" id="reschedule-modal" style="display:none">
+  <div class="modal-box">
+    <h2 class="modal-title">⏱️ Set Session Duration</h2>
+    <p style="color:var(--text-secondary);margin-bottom:1.25rem;font-size:0.9375rem;">
+      Set how long you need for this session. The client's access window will be updated from now.
+    </p>
+    <label class="modal-label" for="duration-input">Duration (minutes)</label>
+    <input type="number" id="duration-input" class="modal-input" min="15" max="180" value="45" placeholder="e.g. 45" />
+    <p class="modal-hint">Between 15 and 180 minutes. Default is 45 minutes.</p>
+    <div class="modal-actions">
+      <button class="btn-act btn-modal-cancel" onclick="closeRescheduleModal()">Cancel</button>
+      <button class="btn-act btn-confirm" onclick="confirmReschedule()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+let allSessions = [];
+let rescheduleSessionId = null;
+
+if (!ComfortCounsel.requireAuth('login.html')) {
+  // redirecting
+} else {
+  const user = ComfortCounsel.getCurrentUser();
+  if (!user || user.role !== 'counselor') {
+    window.location.href = 'index.html';
+  } else {
+    loadSessions();
+  }
+}
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+async function loadSessions() {
+  try {
+    const data = await ComfortCounsel.apiRequest('/api/counselors/dashboard/me');
+    allSessions = data.sessions || [];
+    renderAllTabs();
+  } catch (err) {
+    console.error(err);
+    ComfortCounsel.showToast('Failed to load sessions', 'error');
+  }
+}
+
+function renderAllTabs() {
+  const now = new Date();
+
+  const active = allSessions.filter(s =>
+    s.session_status === 'scheduled' && s.payment_status === 'paid' && new Date(s.expires_at) > now
+  );
+  const scheduled = allSessions.filter(s =>
+    s.session_status === 'scheduled' && s.payment_status === 'pending'
+  );
+  const completed = allSessions.filter(s => s.session_status === 'completed');
+  const expired = allSessions.filter(s =>
+    s.session_status === 'cancelled' ||
+    (s.session_status === 'scheduled' && s.payment_status === 'paid' && new Date(s.expires_at) <= now)
+  );
+
+  renderTab('active', active, 'active');
+  renderTab('scheduled', scheduled, 'scheduled');
+  renderTab('completed', completed, 'completed');
+  renderTab('expired', expired, 'expired');
+
+  // Update tab labels with counts
+  document.querySelector('[data-tab="active"]').textContent = `Active (${active.length})`;
+  document.querySelector('[data-tab="scheduled"]').textContent = `Scheduled (${scheduled.length})`;
+  document.querySelector('[data-tab="completed"]').textContent = `Completed (${completed.length})`;
+  document.querySelector('[data-tab="expired"]').textContent = `Expired / Cancelled (${expired.length})`;
+}
+
+// Helper function to get client avatar URL with profile picture support
+function getClientAvatarUrl(session) {
+  const clientName = session.user_name || 'Client';
+  
+  // Use client's profile picture if available
+  if (session.profile_picture && session.profile_picture.trim()) {
+    return session.profile_picture;
+  }
+  
+  // Fallback to generated avatar
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(clientName)}&background=6366F1&color=fff&size=56`;
+}
+
+function renderTab(tabId, sessions, type) {
+  const container = document.getElementById(tabId);
+  if (!sessions.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3 class="empty-title">No ${type} sessions</h3>
+        <p class="empty-text">Sessions will appear here once clients book with you.</p>
+      </div>`;
+    return;
+  }
+  container.innerHTML = sessions.map(s => buildSessionCard(s, type)).join('');
+}
+
+function buildSessionCard(s, type) {
+  const now = new Date();
+  const expires = s.expires_at ? new Date(s.expires_at) : null;
+  const isActive = type === 'active';
+  const amount = parseFloat(s.session_amount || 0).toFixed(2);
+  const createdDate = new Date(s.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  let badgeClass = 'badge-scheduled';
+  let badgeText = 'Scheduled';
+  if (isActive) { badgeClass = 'badge-active'; badgeText = 'Active'; }
+  else if (type === 'completed') { badgeClass = 'badge-completed'; badgeText = 'Completed'; }
+  else if (type === 'expired') { badgeClass = 'badge-expired'; badgeText = s.session_status === 'cancelled' ? 'Cancelled' : 'Expired'; }
+
+  let timerHTML = '';
+  if (isActive && expires) {
+    const diff = expires - now;
+    const mins = Math.max(0, Math.floor(diff / 60000));
+    const secs = Math.max(0, Math.floor((diff % 60000) / 1000));
+    timerHTML = `<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:0.5rem;padding:0.625rem 1rem;margin-bottom:1rem;font-size:0.875rem;color:#92400E;">
+      ⏱️ Session expires in: <strong id="timer-${s.id}">${mins}m ${secs}s</strong>
+    </div>`;
+    // Start countdown after render
+    setTimeout(() => startTimer(s.id, expires), 100);
+  }
+
+  let actionsHTML = '';
+  if (isActive) {
+    actionsHTML = `
+      <button class="btn-act btn-complete" onclick="completeSession(${s.id})">✅ Mark Complete</button>
+      <button class="btn-act btn-reschedule" onclick="openRescheduleModal(${s.id})">⏱️ Extend / Reschedule</button>
+    `;
+  } else if (type === 'scheduled') {
+    actionsHTML = `<button class="btn-act btn-reschedule" onclick="openRescheduleModal(${s.id})">⏱️ Set Duration</button>`;
+  }
+
+  return `
+    <div class="session-card" id="card-${s.id}">
+      <div class="session-header">
+        <div class="client-row">
+          <img src="${getClientAvatarUrl(s)}"
+               class="client-avatar" alt="${s.user_name || 'Client'}" />
+          <div>
+            <div class="client-name">${s.user_name || 'Client'}</div>
+            <div class="client-phone">📞 ${s.caller_phone || 'N/A'}</div>
+          </div>
+        </div>
+        <span class="status-badge ${badgeClass}">${badgeText}</span>
+      </div>
+      ${timerHTML}
+      <div class="session-details">
+        <div class="detail-item">
+          <span class="detail-icon">📅</span>
+          <div><div class="detail-label">Booked</div><div class="detail-value">${createdDate}</div></div>
+        </div>
+        ${expires ? `<div class="detail-item">
+          <span class="detail-icon">⏰</span>
+          <div><div class="detail-label">Expires</div><div class="detail-value">${expires.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'})}</div></div>
+        </div>` : ''}
+        <div class="detail-item">
+          <span class="detail-icon">💰</span>
+          <div><div class="detail-label">Amount</div><div class="detail-value">GHS ${amount}</div></div>
+        </div>
+        <div class="detail-item">
+          <span class="detail-icon">💳</span>
+          <div><div class="detail-label">Payment</div><div class="detail-value">${s.payment_status}</div></div>
+        </div>
+      </div>
+      ${actionsHTML ? `<div class="session-actions">${actionsHTML}</div>` : ''}
+    </div>
+  `;
+}
+
+function startTimer(sessionId, expiresAt) {
+  const el = document.getElementById(`timer-${sessionId}`);
+  if (!el) return;
+  function tick() {
+    const diff = new Date(expiresAt) - new Date();
+    if (diff <= 0) { el.textContent = 'Expired'; return; }
+    const m = Math.floor(diff / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = `${m}m ${s}s`;
+    setTimeout(tick, 1000);
+  }
+  tick();
+}
+
+async function completeSession(sessionId) {
+  if (!confirm('Mark this session as completed?')) return;
+  try {
+    await ComfortCounsel.apiRequest(`/api/sessions/${sessionId}/complete`, { method: 'PATCH' });
+    ComfortCounsel.showToast('Session marked as completed', 'success');
+    loadSessions();
+  } catch (err) {
+    ComfortCounsel.showToast(err.message || 'Failed to complete session', 'error');
+  }
+}
+
+function openRescheduleModal(sessionId) {
+  rescheduleSessionId = sessionId;
+  document.getElementById('duration-input').value = 45;
+  document.getElementById('reschedule-modal').style.display = 'flex';
+}
+
+function closeRescheduleModal() {
+  document.getElementById('reschedule-modal').style.display = 'none';
+  rescheduleSessionId = null;
+}
+
+async function confirmReschedule() {
+  const duration = parseInt(document.getElementById('duration-input').value);
+  if (!duration || duration < 15 || duration > 180) {
+    ComfortCounsel.showToast('Duration must be between 15 and 180 minutes', 'error');
+    return;
+  }
+  try {
+    const result = await ComfortCounsel.apiRequest(`/api/counselors/sessions/${rescheduleSessionId}/reschedule`, {
+      method: 'PATCH',
+      body: JSON.stringify({ new_duration_minutes: duration })
+    });
+    ComfortCounsel.showToast(`Session extended to ${duration} minutes`, 'success');
+    closeRescheduleModal();
+    loadSessions();
+  } catch (err) {
+    ComfortCounsel.showToast(err.message || 'Failed to reschedule', 'error');
+  }
+}
+
+// Close modal on overlay click
+document.getElementById('reschedule-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeRescheduleModal();
+});
+</script>
+</body>
+</html>

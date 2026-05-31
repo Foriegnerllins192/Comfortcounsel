@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find a Counselor - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">🌿 Comfort Counsel</div>
+  <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
+    <a href="index.html">Home</a>
+    <a href="find-counselor.html">Find Counselor</a>
+    <a href="register-counselor.html">Become a Counselor</a>
+    <a href="login.html" id="nav-login">Login</a>
+    <a href="dashboard.html" id="nav-dashboard" style="display:none" class="btn btn-primary btn-sm">Dashboard</a>
+  </div>
+</nav>
+
+<section style="padding-top:3rem;">
+  <h2 class="section-title">Find a Counselor</h2>
+  <p class="section-sub">Browse our verified counselors and book a session for 50 GHS</p>
+
+  <div class="filter-bar" id="filter-bar">
+    <button class="filter-btn active" data-cat="">All</button>
+    <button class="filter-btn" data-cat="Youth Life Counseling">Youth Life</button>
+    <button class="filter-btn" data-cat="Relationship Counseling">Relationship</button>
+    <button class="filter-btn" data-cat="Career Counseling">Career</button>
+    <button class="filter-btn" data-cat="Mental Wellness Support">Mental Wellness</button>
+    <button class="filter-btn" data-cat="Family Counseling">Family</button>
+    <button class="filter-btn" data-cat="Business & Startup Advice">Business</button>
+  </div>
+
+  <div class="counselors-grid" id="counselors-grid">
+    <p style="text-align:center;color:var(--muted);grid-column:1/-1;">Loading counselors...</p>
+  </div>
+</section>
+
+<!-- COUNSELOR INFO MODAL -->
+<div id="info-modal" class="modal-overlay">
+  <div class="modal-box" style="max-height:90vh;display:flex;flex-direction:column;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-shrink:0;">
+      <h3 style="color:var(--primary);margin:0;">Counselor Details</h3>
+      <button onclick="closeInfoModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding-right:0.5rem;">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <img id="info-modal-pic" src="" alt="Counselor" style="width:140px;height:140px;border-radius:50%;object-fit:cover;margin:0 auto 1rem;display:block;box-shadow:0 4px 12px rgba(0,0,0,0.15);" />
+        <h2 id="info-modal-name" style="margin:0;color:var(--text);"></h2>
+        <p id="info-modal-category" style="color:var(--primary);font-weight:600;margin:.25rem 0;"></p>
+      </div>
+      <div style="background:var(--light);border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
+        <div style="margin-bottom:1rem;">
+          <label style="font-weight:600;color:var(--muted);font-size:.85rem;">EXPERIENCE</label>
+          <p id="info-modal-experience" style="margin:.25rem 0;font-size:1.1rem;color:var(--text);"></p>
+        </div>
+        <div style="margin-bottom:1rem;">
+          <label style="font-weight:600;color:var(--muted);font-size:.85rem;">LOCATION</label>
+          <p id="info-modal-location" style="margin:.25rem 0;color:var(--text);">📍 <span id="info-modal-location-text"></span></p>
+        </div>
+        <div>
+          <label style="font-weight:600;color:var(--muted);font-size:.85rem;">PHONE</label>
+          <p id="info-modal-phone" style="margin:.25rem 0;color:var(--text);"></p>
+        </div>
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <label style="font-weight:600;color:var(--muted);font-size:.85rem;display:block;margin-bottom:.5rem;">ABOUT</label>
+        <p id="info-modal-bio" style="color:var(--text);line-height:1.6;margin:0;"></p>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;flex-shrink:0;margin-top:1rem;" onclick="closeInfoModal()">Close</button>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div id="booking-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 style="color:var(--primary);margin-bottom:.5rem;">Book a Session</h3>
+    <p style="color:var(--muted);margin-bottom:1.5rem;">You are about to book a session with <strong id="modal-counselor-name"></strong></p>
+    <div style="background:var(--light);border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
+      <div style="font-size:1.5rem;font-weight:700;color:var(--primary);">50 GHS</div>
+      <div style="color:var(--muted);font-size:.9rem;">45-minute counseling session</div>
+    </div>
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label style="font-weight:600;display:block;margin-bottom:.4rem;">Your Phone Number</label>
+      <input type="tel" id="modal-caller-phone" placeholder="e.g. 0241234567" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;font-size:.95rem;" />
+      <small style="color:var(--muted)">The counselor will call you on this number after payment.</small>
+    </div>
+    <div id="modal-alert"></div>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="confirm-book-btn">Pay with Hubtel</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOTLINE MODAL (shown after payment) -->
+<div id="hotline-modal" class="modal-overlay">
+  <div class="modal-box" style="text-align:center;">
+    <div style="font-size:3rem;margin-bottom:.5rem;">✅</div>
+    <h3 style="color:var(--primary);margin-bottom:.5rem;">Payment Successful!</h3>
+    <p style="color:var(--muted);margin-bottom:1.5rem;">Your 45-minute session is now active. Call the hotline below to connect with your counselor.</p>
+    <div style="background:var(--light);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;">
+      <div style="font-size:.85rem;color:var(--muted);margin-bottom:.3rem;">COUNSELOR HOTLINE</div>
+      <div id="hotline-number" style="font-size:2rem;font-weight:700;color:var(--primary);letter-spacing:.1em;"></div>
+    </div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.5rem;">⏱ Session expires in 45 minutes from payment.</p>
+    <button class="btn btn-primary" onclick="document.getElementById('hotline-modal').classList.remove('open')">Got it</button>
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2026 <span>Comfort Counsel</span>. All rights reserved.</p>
+</footer>
+
+<script src="script.js"></script>
+<script>
+  let selectedCounselorId = null;
+
+  async function loadCounselors(category = '') {
+    const grid = document.getElementById('counselors-grid');
+    grid.innerHTML = '<p style="text-align:center;color:var(--muted);grid-column:1/-1;">Loading...</p>';
+    try {
+      const url = category ? `/api/counselors?category=${encodeURIComponent(category)}` : '/api/counselors';
+      const res = await fetch(url);
+      const counselors = await res.json();
+      if (!counselors.length) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--muted);grid-column:1/-1;">No counselors found in this category.</p>';
+        return;
+      }
+      grid.innerHTML = counselors.map(c => `
+        <div class="counselor-card">
+          <div style="position:relative;">
+            <img src="${c.profile_picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name) + '&background=2E7D6B&color=fff&size=200'}" alt="${c.name}" />
+            <button class="info-btn" onclick="openCounselorInfo(${c.id}, '${c.name.replace(/'/g,"\\'")}', '${c.category.replace(/'/g,"\\'")}', '${(c.bio || '').replace(/'/g,"\\'")}', '${c.location.replace(/'/g,"\\'")}', ${c.years_experience}, '${c.phone_number || ''}', '${(c.profile_picture || '').replace(/'/g, "\\'")}')" title="View more info">ℹ️</button>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;">
+              <h3 style="margin:0">${c.name}</h3>
+              <span style="font-size:.75rem;font-weight:700;padding:.2rem .55rem;border-radius:20px;
+                background:${c.is_available ? '#d1fae5' : '#fee2e2'};
+                color:${c.is_available ? '#065f46' : '#991b1b'}">
+                ${c.is_available ? '● Available' : '● Busy'}
+              </span>
+            </div>
+            <span class="category-badge">${c.category}</span>
+            <p>${c.bio ? c.bio.substring(0, 100) + (c.bio.length > 100 ? '...' : '') : 'Experienced counselor ready to help.'}</p>
+            <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;">📍 ${c.location || 'Remote'} &nbsp;|&nbsp; ${c.years_experience || 0} yrs experience</p>
+            <button class="btn ${c.is_available ? 'btn-primary' : 'btn-outline'}" style="width:100%;${!c.is_available ? 'opacity:.6;cursor:not-allowed' : ''}"
+              onclick="${c.is_available ? `checkAvailabilityAndBook(${c.id}, '${c.name.replace(/'/g,"\\'")}')` : 'alert(\"This counselor is currently busy. Please choose another counselor.\")'}">
+              ${c.is_available ? 'Book Session — 50 GHS' : 'Currently Busy'}
+            </button>
+          </div>
+        </div>
+      `).join('');
+    } catch {
+      grid.innerHTML = '<p style="text-align:center;color:var(--danger);grid-column:1/-1;">Failed to load counselors.</p>';
+    }
+  }
+
+  document.getElementById('filter-bar').addEventListener('click', e => {
+    if (!e.target.matches('.filter-btn')) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    loadCounselors(e.target.dataset.cat);
+  });
+
+  async function checkAvailabilityAndBook(id, name) {
+    const token = localStorage.getItem('cc_token');
+    if (!token) { window.location.href = 'login.html'; return; }
+    
+    try {
+      const res = await fetch(`/api/counselor/${id}/status`);
+      const data = await res.json();
+      
+      if (!data.available) {
+        alert('This counselor is currently busy. Please choose another counselor.');
+        return;
+      }
+      
+      openBooking(id, name);
+    } catch (err) {
+      console.error('Availability check failed:', err);
+      alert('Could not verify counselor availability. Please try again.');
+    }
+  }
+
+  function openBooking(id, name) {
+    const token = localStorage.getItem('cc_token');
+    if (!token) { window.location.href = 'login.html'; return; }
+    selectedCounselorId = id;
+    document.getElementById('modal-counselor-name').textContent = name;
+    document.getElementById('modal-alert').innerHTML = '';
+    document.getElementById('modal-caller-phone').value = '';
+    document.getElementById('booking-modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('booking-modal').classList.remove('open');
+  }
+
+  function openCounselorInfo(id, name, category, bio, location, experience, phone, profilePicture) {
+    document.getElementById('info-modal-name').textContent = name;
+    document.getElementById('info-modal-category').textContent = category;
+    document.getElementById('info-modal-experience').textContent = experience + ' years';
+    document.getElementById('info-modal-location-text').textContent = location || 'Remote';
+    document.getElementById('info-modal-phone').textContent = phone || 'Not provided';
+    document.getElementById('info-modal-bio').textContent = bio || 'Experienced counselor ready to help.';
+    
+    // Use the profile picture passed from the card, or fallback to avatar
+    if (profilePicture) {
+      document.getElementById('info-modal-pic').src = profilePicture;
+    } else {
+      document.getElementById('info-modal-pic').src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=2E7D6B&color=fff&size=200';
+    }
+    
+    document.getElementById('info-modal').classList.add('open');
+  }
+
+  function closeInfoModal() {
+    document.getElementById('info-modal').classList.remove('open');
+  }
+
+  function showHotline(number) {
+    document.getElementById('hotline-number').textContent = number;
+    document.getElementById('hotline-modal').classList.add('open');
+  }
+
+  document.getElementById('confirm-book-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('confirm-book-btn');
+    const callerPhone = document.getElementById('modal-caller-phone').value.trim();
+    if (!callerPhone) {
+      document.getElementById('modal-alert').innerHTML = '<div class="alert alert-error">Please enter your phone number.</div>';
+      return;
+    }
+    btn.disabled = true; btn.textContent = 'Processing...';
+    try {
+      const res = await fetch('/api/book-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('cc_token') },
+        body: JSON.stringify({ counselor_id: selectedCounselorId, caller_phone: callerPhone })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      window.location.href = data.payment_url;
+    } catch (err) {
+      document.getElementById('modal-alert').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      btn.disabled = false; btn.textContent = 'Pay with Hubtel';
+    }
+  });
+
+  // Feature 2: On page load, check if user already has an active paid session → show hotline banner
+  (async function checkActiveSession() {
+    const token = localStorage.getItem('cc_token');
+    if (!token) return;
+    try {
+      const res = await fetch('/api/active-session', { headers: { 'Authorization': 'Bearer ' + token } });
+      const data = await res.json();
+      if (data.active && data.hotline) {
+        const banner = document.createElement('div');
+        banner.style.cssText = 'background:#d1fae5;border:1px solid #6ee7b7;border-radius:10px;padding:1rem 1.5rem;margin:1rem auto;max-width:700px;text-align:center;';
+        banner.innerHTML = `<strong style="color:#065f46">Active session with ${data.session.counselor_name}.</strong>
+          Call your counselor hotline: <strong style="font-size:1.2rem;color:var(--primary)">${data.hotline}</strong>
+          &nbsp;<small style="color:var(--muted)">(expires ${new Date(data.session.expires_at).toLocaleTimeString()})</small>`;
+        document.querySelector('section').prepend(banner);
+      }
+    } catch { /* silent */ }
+  })();
+
+  // Feature 2: Handle Hubtel redirect back — verify payment and reveal hotline
+  (async function handlePaymentReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get('reference') || params.get('trxref');
+    if (!reference) return;
+    const token = localStorage.getItem('cc_token');
+    if (!token) return;
+    window.history.replaceState({}, '', window.location.pathname);
+    try {
+      const res = await fetch(`/api/verify/${reference}`, { headers: { 'Authorization': 'Bearer ' + token } });
+      const data = await res.json();
+      if (data.success && data.hotline) {
+        showHotline(data.hotline);
+      } else if (data.error) {
+        alert('Payment verification failed: ' + data.error);
+      }
+    } catch (err) {
+      console.error('Verify error:', err.message);
+    }
+  })();
+
+  loadCounselors();
+
+  // Smart polling - only reload if data actually changed
+  let lastCounselorData = null;
+  setInterval(async () => {
+    try {
+      const activeFilter = document.querySelector('.filter-btn.active');
+      const category = activeFilter ? activeFilter.dataset.cat : '';
+      const url = category ? `/api/counselors?category=${encodeURIComponent(category)}` : '/api/counselors';
+      const res = await fetch(url);
+      const data = await res.json();
+      
+      // Check if response is an array (success) or error object
+      if (!Array.isArray(data)) {
+        console.error('API error:', data.error);
+        return;
+      }
+      
+      const counselors = data;
+      
+      // Only reload if availability changed
+      const currentData = JSON.stringify(counselors.map(c => ({ id: c.id, is_available: c.is_available })));
+      if (lastCounselorData !== currentData) {
+        lastCounselorData = currentData;
+        loadCounselors(category);
+      }
+    } catch (err) {
+      console.error('Polling error:', err);
+    }
+  }, 5000);
+</script>
+</body>
+</html>

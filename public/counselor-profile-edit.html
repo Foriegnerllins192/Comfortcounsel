@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Profile - Comfort Counsel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: var(--bg-secondary); }
+    .page-wrap { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .page-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .page-subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+    .edit-card { background: white; border-radius: 1rem; padding: 2rem; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .card-title { font-size: 1.125rem; font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 0.875rem; border-bottom: 2px solid var(--border); }
+    .form-group { margin-bottom: 1.375rem; }
+    .form-label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9375rem; }
+    .form-label span { color: var(--danger); }
+    .form-input, .form-textarea, .form-select { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 1rem; font-family: inherit; transition: border-color 0.2s; box-sizing: border-box; }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    .form-textarea { min-height: 130px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-hint { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.375rem; }
+    .char-count { font-size: 0.8125rem; color: var(--text-secondary); text-align: right; margin-top: 0.25rem; }
+    /* Duration selector */
+    .duration-options { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .duration-btn { padding: 0.5rem 1.125rem; border: 2px solid var(--border); border-radius: 2rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; background: white; transition: var(--transition); }
+    .duration-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .duration-btn.selected { border-color: var(--primary); background: var(--primary); color: white; }
+    .duration-custom { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
+    .duration-custom input { width: 90px; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.9375rem; }
+    /* Price input */
+    .price-row { display: flex; align-items: center; gap: 0.5rem; }
+    .currency { font-weight: 700; color: var(--text-secondary); font-size: 1rem; }
+    .price-row .form-input { flex: 1; }
+    /* Tier info */
+    .tier-info { background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 0.75rem; padding: 1rem 1.25rem; margin-top: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
+    .tier-info strong { color: var(--primary); }
+    /* Avatar section */
+    .avatar-section { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .avatar-preview { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--border); object-fit: cover; }
+    .avatar-upload-btn { padding: 0.5rem 1.125rem; border: 2px solid var(--primary); color: var(--primary); background: white; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; }
+    .avatar-upload-btn:hover { background: var(--primary); color: white; }
+    /* Form actions */
+    .form-actions { display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .btn-save { padding: 0.75rem 2rem; background: var(--primary); color: white; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 1rem; cursor: pointer; transition: var(--transition); }
+    .btn-save:hover { background: var(--primary-dark); }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-cancel { padding: 0.75rem 2rem; background: white; color: var(--text-secondary); border: 2px solid var(--border); border-radius: 0.5rem; font-weight: 600; font-size: 1rem; cursor: pointer; }
+    .btn-cancel:hover { border-color: var(--primary); color: var(--primary); }
+    @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } .form-actions { flex-direction: column; } .btn-save, .btn-cancel { width: 100%; } }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo"><span class="logo-icon">🌿</span><span class="logo-text">Comfort Counsel</span></div>
+    <button class="nav-toggle" id="nav-toggle"><span></span><span></span><span></span></button>
+    <div class="nav-menu" id="nav-menu">
+      <a href="counselor-dashboard.html" class="nav-link">Dashboard</a>
+      <a href="client-requests.html" class="nav-link">Client Requests</a>
+      <a href="counselor-sessions.html" class="nav-link">My Sessions</a>
+      <a href="earnings.html" class="nav-link">Earnings</a>
+      <a href="counselor-profile-edit.html" class="nav-link active">Edit Profile</a>
+      <button class="nav-link-btn" onclick="ComfortCounsel.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <h1 class="page-title">Edit Profile</h1>
+  <p class="page-subtitle">Update your professional information visible to clients</p>
+
+  <!-- Profile Picture -->
+  <div class="edit-card">
+    <h2 class="card-title">Profile Picture</h2>
+    <div class="avatar-section">
+      <img id="avatar-preview" src="" alt="Profile" class="avatar-preview" />
+      <div>
+        <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="previewAvatar(this)" />
+        <button class="avatar-upload-btn" onclick="document.getElementById('avatar-file').click()">📷 Change Photo</button>
+        <p class="form-hint" style="margin-top:0.5rem">JPEG, PNG or WebP · Max 2MB</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Basic Info -->
+  <div class="edit-card">
+    <h2 class="card-title">Basic Information</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="input-name">Full Name <span>*</span></label>
+        <input type="text" id="input-name" class="form-input" placeholder="Your full name" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="input-phone">Phone Number <span>*</span></label>
+        <input type="tel" id="input-phone" class="form-input" placeholder="0XXXXXXXXX" maxlength="10" />
+        <p class="form-hint">10-digit Ghana number</p>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="input-location">Location</label>
+        <input type="text" id="input-location" class="form-input" placeholder="e.g. Accra, Ghana" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="input-experience">Years of Experience</label>
+        <input type="number" id="input-experience" class="form-input" min="0" max="50" placeholder="e.g. 5" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="input-bio">About Me</label>
+      <textarea id="input-bio" class="form-textarea" placeholder="Tell clients about yourself, your approach, and your experience..." oninput="updateCharCount(this, 'bio-count', 2000)"></textarea>
+      <div class="char-count"><span id="bio-count">0</span> / 2000</div>
+    </div>
+  </div>
+
+  <!-- Session Settings -->
+  <div class="edit-card">
+    <h2 class="card-title">Session Settings</h2>
+
+    <div class="form-group">
+      <label class="form-label">Default Session Duration</label>
+      <p class="form-hint" style="margin-bottom:0.75rem">Choose how long your sessions typically run. Clients will see this on your profile.</p>
+      <div class="duration-options" id="duration-options">
+        <button class="duration-btn" data-value="30" onclick="selectDuration(30)">30 min</button>
+        <button class="duration-btn selected" data-value="45" onclick="selectDuration(45)">45 min</button>
+        <button class="duration-btn" data-value="60" onclick="selectDuration(60)">60 min</button>
+        <button class="duration-btn" data-value="90" onclick="selectDuration(90)">90 min</button>
+        <button class="duration-btn" data-value="custom" onclick="selectDuration('custom')">Custom</button>
+      </div>
+      <div class="duration-custom" id="custom-duration-row" style="display:none">
+        <input type="number" id="custom-duration" min="15" max="180" placeholder="45" />
+        <span class="form-hint">minutes (15–180)</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="input-price">Session Price (GHS) <span>*</span></label>
+      <div class="price-row">
+        <span class="currency">GHS</span>
+        <input type="number" id="input-price" class="form-input" min="50" placeholder="e.g. 80" />
+      </div>
+      <div class="tier-info" id="tier-info">Loading tier info...</div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn-cancel" onclick="window.location.href='counselor-dashboard.html'">Cancel</button>
+    <button class="btn-save" id="save-btn" onclick="saveProfile()">Save Changes</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+let currentProfile = null;
+let selectedDuration = 45;
+let avatarChanged = false;
+
+if (!ComfortCounsel.requireAuth('login.html')) {
+  // redirecting
+} else {
+  const user = ComfortCounsel.getCurrentUser();
+  if (!user || user.role !== 'counselor') {
+    window.location.href = 'index.html';
+  } else {
+    loadProfile();
+  }
+}
+
+async function loadProfile() {
+  try {
+    const data = await ComfortCounsel.apiRequest('/api/counselors/dashboard/me');
+    currentProfile = data.profile;
+    populateForm(currentProfile);
+  } catch (err) {
+    ComfortCounsel.showToast('Failed to load profile data', 'error');
+  }
+}
+
+function populateForm(p) {
+  const user = ComfortCounsel.getCurrentUser();
+
+  // Avatar - improved loading with better error handling
+  const avatarEl = document.getElementById('avatar-preview');
+  if (p.profile_picture && p.profile_picture.trim()) {
+    avatarEl.src = p.profile_picture;
+    avatarEl.onerror = function() {
+      // Fallback to generated avatar if custom picture fails to load
+      console.warn('Failed to load custom profile picture, falling back to generated avatar');
+      avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name || user.name || 'C')}&background=6366F1&color=fff&size=80`;
+    };
+  } else {
+    avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name || user.name || 'C')}&background=6366F1&color=fff&size=80`;
+  }
+
+  // Fields
+  document.getElementById('input-name').value = p.name || user.name || '';
+  document.getElementById('input-phone').value = p.phone_number || '';
+  document.getElementById('input-location').value = p.location || '';
+  document.getElementById('input-experience').value = p.years_experience || '';
+  document.getElementById('input-bio').value = p.bio || '';
+  document.getElementById('input-price').value = p.price || 80;
+  updateCharCount(document.getElementById('input-bio'), 'bio-count', 2000);
+
+  // Duration
+  const dur = p.session_duration || 45;
+  const presets = [30, 45, 60, 90];
+  if (presets.includes(dur)) {
+    selectDuration(dur);
+  } else {
+    selectDuration('custom');
+    document.getElementById('custom-duration').value = dur;
+  }
+
+  // Tier info
+  const tier = p.subscription_tier || 'basic';
+  const limits = { basic: 100, standard: 250, premium: 400 };
+  const maxPrice = limits[tier] || 100;
+  document.getElementById('tier-info').innerHTML =
+    `Your tier: <strong>${tier.charAt(0).toUpperCase() + tier.slice(1)}</strong> · Max price: <strong>GHS ${maxPrice}</strong> per session`;
+  document.getElementById('input-price').max = maxPrice;
+}
+
+function selectDuration(value) {
+  document.querySelectorAll('.duration-btn').forEach(btn => btn.classList.remove('selected'));
+  const customRow = document.getElementById('custom-duration-row');
+
+  if (value === 'custom') {
+    document.querySelector('[data-value="custom"]').classList.add('selected');
+    customRow.style.display = 'flex';
+    selectedDuration = parseInt(document.getElementById('custom-duration').value) || 45;
+  } else {
+    selectedDuration = parseInt(value);
+    const btn = document.querySelector(`[data-value="${value}"]`);
+    if (btn) btn.classList.add('selected');
+    customRow.style.display = 'none';
+  }
+}
+
+function previewAvatar(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 2 * 1024 * 1024) {
+    ComfortCounsel.showToast('Image must be under 2MB', 'error');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('avatar-preview').src = e.target.result;
+    avatarChanged = true;
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateCharCount(el, countId, max) {
+  const count = el.value.length;
+  document.getElementById(countId).textContent = count;
+  document.getElementById(countId).style.color = count > max ? 'var(--danger)' : 'var(--text-secondary)';
+}
+
+async function saveProfile() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    // Get duration
+    const customDurInput = document.getElementById('custom-duration');
+    const isCustom = document.querySelector('[data-value="custom"]').classList.contains('selected');
+    const duration = isCustom ? parseInt(customDurInput.value) : selectedDuration;
+
+    if (!duration || duration < 15 || duration > 180) {
+      ComfortCounsel.showToast('Session duration must be between 15 and 180 minutes', 'error');
+      btn.disabled = false; btn.textContent = 'Save Changes';
+      return;
+    }
+
+    const price = parseFloat(document.getElementById('input-price').value);
+    if (!price || price < 50) {
+      ComfortCounsel.showToast('Price must be at least GHS 50', 'error');
+      btn.disabled = false; btn.textContent = 'Save Changes';
+      return;
+    }
+
+    const phone = document.getElementById('input-phone').value.trim();
+    if (phone && !/^\d{10}$/.test(phone)) {
+      ComfortCounsel.showToast('Phone number must be exactly 10 digits', 'error');
+      btn.disabled = false; btn.textContent = 'Save Changes';
+      return;
+    }
+
+    // Save profile data
+    const profileData = {
+      name: document.getElementById('input-name').value.trim(),
+      phone_number: phone,
+      location: document.getElementById('input-location').value.trim(),
+      years_experience: parseInt(document.getElementById('input-experience').value) || 0,
+      bio: document.getElementById('input-bio').value.trim(),
+      price,
+      session_duration: duration
+    };
+    
+    console.log('Saving profile data:', profileData); // Debug log
+    
+    await ComfortCounsel.apiRequest('/api/counselors/profile/me', {
+      method: 'PUT',
+      body: JSON.stringify(profileData)
+    });
+
+    // Upload avatar if changed
+    if (avatarChanged) {
+      const fileInput = document.getElementById('avatar-file');
+      if (fileInput.files && fileInput.files[0]) {
+        const formData = new FormData();
+        formData.append('profile_picture', fileInput.files[0]);
+        const token = localStorage.getItem('cc_token');
+        const avatarResponse = await fetch('/api/counselors/profile/picture', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+        
+        if (!avatarResponse.ok) {
+          const errorData = await avatarResponse.json();
+          throw new Error(errorData.error || 'Failed to upload profile picture');
+        }
+        
+        const avatarData = await avatarResponse.json();
+        console.log('Avatar uploaded successfully:', avatarData);
+      }
+    }
+
+    // Update local user name
+    const nameVal = document.getElementById('input-name').value.trim();
+    if (nameVal) ComfortCounsel.updateUserData({ name: nameVal });
+
+    ComfortCounsel.showToast('Profile updated successfully!', 'success');
+    setTimeout(() => window.location.href = 'counselor-dashboard.html', 1500);
+
+  } catch (err) {
+    ComfortCounsel.showToast(err.message || 'Failed to save profile', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
+  }
+}
+</script>
+</body>
+</html>
