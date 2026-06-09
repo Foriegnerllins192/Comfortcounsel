@@ -25,9 +25,10 @@
       margin-bottom: 2rem;
       box-shadow: var(--shadow-md);
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: 200px 1fr 280px;
       gap: 2rem;
       align-items: start;
+      min-height: 200px;
     }
     
     .profile-avatar-section {
@@ -342,28 +343,79 @@
       .profile-sidebar {
         order: -1;
       }
+      
+      .profile-header {
+        grid-template-columns: 160px 1fr 240px;
+        gap: 1.5rem;
+        padding: 1.5rem;
+      }
+      
+      .profile-avatar {
+        width: 120px;
+        height: 120px;
+      }
     }
     
     @media (max-width: 768px) {
       .profile-header {
         grid-template-columns: 1fr;
         text-align: center;
+        gap: 1.5rem;
+        padding: 1.5rem;
       }
       
       .profile-avatar-section {
         margin: 0 auto;
       }
       
+      .profile-avatar {
+        width: 100px;
+        height: 100px;
+      }
+      
       .profile-stats {
         justify-content: center;
+        flex-wrap: wrap;
+        gap: 1rem;
       }
       
       .profile-actions {
         width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
       }
       
       .reviews-summary {
         flex-direction: column;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .profile-header {
+        padding: 1rem;
+        gap: 1rem;
+      }
+      
+      .profile-stats {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      
+      .stat {
+        font-size: 0.875rem;
+      }
+      
+      .profile-name {
+        font-size: 1.5rem;
+      }
+      
+      .price-card {
+        padding: 1rem;
+      }
+      
+      .price-amount {
+        font-size: 1.5rem;
       }
     }
   </style>
@@ -492,10 +544,49 @@
 const urlParams = new URLSearchParams(window.location.search);
 const counselorId = urlParams.get('id');
 
+// Phone unlock system state
+let unlockedContacts = JSON.parse(localStorage.getItem('cc_unlocked_contacts') || '{}');
+
+// Tier-based pricing for contact unlock (daily fees)
+const UNLOCK_PRICING = {
+  'basic': 5,      // GHS 5 per day for basic counselors
+  'standard': 8,   // GHS 8 per day for standard counselors  
+  'premium': 12    // GHS 12 per day for premium counselors
+};
+
 if (!counselorId) {
   window.location.href = 'find-counselors.html';
 } else {
   loadCounselorProfile(counselorId);
+}
+
+/**
+ * Check if contact is unlocked for this counselor today
+ */
+function isContactUnlocked(counselorId) {
+  const today = new Date().toDateString();
+  const unlockKey = `${counselorId}_${today}`;
+  return unlockedContacts[unlockKey] || false;
+}
+
+/**
+ * Get counselor tier for pricing
+ */
+function getCounselorTier(counselor) {
+  // Determine tier based on years of experience and other factors
+  const experience = counselor.years_experience || 0;
+  const price = parseFloat(counselor.price) || 80;
+  
+  if (experience >= 10 || price >= 120) return 'premium';
+  if (experience >= 5 || price >= 100) return 'standard';
+  return 'basic';
+}
+
+/**
+ * Get unlock price for counselor tier
+ */
+function getUnlockPrice(tier) {
+  return UNLOCK_PRICING[tier] || UNLOCK_PRICING.basic;
 }
 
 async function loadCounselorProfile(id) {
@@ -530,7 +621,16 @@ function displayCounselorProfile(counselor) {
   const bio = counselor.bio || 'Professional counselor ready to help you with your concerns.';
   const location = counselor.location || 'Ghana';
   const phone = counselor.phone_number || 'Not provided';
-  const price = counselor.price || 80; // Get counselor's actual price, default to 80
+  const price = counselor.price || 80;
+  
+  // Privacy system: check if contact is unlocked
+  const tier = getCounselorTier(counselor);
+  const unlockPrice = getUnlockPrice(tier);
+  const isUnlocked = isContactUnlocked(counselor.id);
+  
+  // Phone display logic
+  const phoneDisplay = isUnlocked ? phone : 'Hidden';
+  const phoneClasses = isUnlocked ? '' : 'contact-locked';
   
   // Update profile header
   document.getElementById('profile-header').innerHTML = `
@@ -541,7 +641,7 @@ function displayCounselorProfile(counselor) {
     </div>
     
     <div class="profile-info">
-      <h1 class="profile-name">${counselor.name}</h1>
+      <h1 class="profile-name">${counselor.name} <span class="tag" style="font-size: 0.75rem; text-transform: uppercase; background: var(--${tier === 'premium' ? 'accent' : tier === 'standard' ? 'primary' : 'gray-500'}); color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${tier}</span></h1>
       <p class="profile-specialty">${counselor.category}</p>
       
       <div class="profile-stats">
@@ -555,14 +655,23 @@ function displayCounselorProfile(counselor) {
         </div>
         <div class="stat">
           <span class="stat-icon">📞</span>
-          <span>${phone}</span>
+          <span class="${phoneClasses}">${phoneDisplay}</span>
         </div>
       </div>
+      
+      ${!isUnlocked ? `
+      <button class="unlock-contact-btn" onclick="openUnlockModal(${counselor.id}, '${tier}', ${unlockPrice})">
+        🔓 Unlock Contact <span class="price">GHS ${unlockPrice}/day</span>
+      </button>
+      ` : `
+      <div class="unlock-status">Contact unlocked for today</div>
+      `}
       
       <div class="profile-tags">
         <span class="tag">${counselor.category}</span>
         <span class="tag">${yearsExp} years experience</span>
         <span class="tag">${location}</span>
+        <span class="tag" style="background: var(--${tier === 'premium' ? 'accent' : tier === 'standard' ? 'primary' : 'gray-500'}); color: white;">${tier.charAt(0).toUpperCase() + tier.slice(1)} Tier</span>
       </div>
     </div>
     
@@ -580,7 +689,7 @@ function displayCounselorProfile(counselor) {
   // Update about section
   document.getElementById('about-text').innerHTML = `<p>${bio}</p>`;
   
-  // Update quick info
+  // Update quick info with privacy protection
   document.getElementById('quick-info').innerHTML = `
     <li>
       <span class="info-label">Category</span>
@@ -596,7 +705,11 @@ function displayCounselorProfile(counselor) {
     </li>
     <li>
       <span class="info-label">Phone</span>
-      <span class="info-value">${phone}</span>
+      <span class="info-value ${phoneClasses}">${phoneDisplay}</span>
+    </li>
+    <li>
+      <span class="info-label">Tier Level</span>
+      <span class="info-value" style="text-transform: capitalize; font-weight: 700; color: var(--${tier === 'premium' ? 'accent' : tier === 'standard' ? 'primary' : 'gray-600'});">${tier}</span>
     </li>
   `;
   
@@ -608,9 +721,108 @@ function displayCounselorProfile(counselor) {
 }
 
 // ========================================
-// BOOKING MODAL - Task 3
+// CONTACT UNLOCK SYSTEM
 // ========================================
 
+/**
+ * Open unlock contact modal
+ */
+function openUnlockModal(counselorId, tier, price) {
+  // Check if user is logged in
+  const token = localStorage.getItem('cc_token');
+  if (!token) {
+    ComfortCounsel.showToast('Please login to unlock contact information', 'warning');
+    window.location.href = `login.html?redirect=counselor-profile.html?id=${counselorId}`;
+    return;
+  }
+
+  const modal = document.getElementById('unlock-modal');
+  if (!modal) return;
+  
+  // Populate modal
+  const counselor = window.currentCounselor;
+  document.getElementById('unlock-counselor-name').textContent = counselor.name;
+  document.getElementById('unlock-counselor-tier').textContent = tier.charAt(0).toUpperCase() + tier.slice(1);
+  document.getElementById('unlock-price-amount').textContent = `GHS ${price}`;
+  document.getElementById('unlock-counselor-avatar').src = ComfortCounsel.getAvatarUrl(counselor.name, counselor.profile_picture, 'list');
+  
+  // Show modal
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Close unlock modal
+ */
+function closeUnlockModal() {
+  const modal = document.getElementById('unlock-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+  document.body.style.overflow = '';
+  
+  // Reset button state
+  const unlockBtn = document.getElementById('confirm-unlock-btn');
+  if (unlockBtn) {
+    unlockBtn.disabled = false;
+    unlockBtn.innerHTML = 'Unlock Contact';
+  }
+}
+
+/**
+ * Process unlock payment
+ */
+async function processUnlockPayment() {
+  const unlockBtn = document.getElementById('confirm-unlock-btn');
+  const counselor = window.currentCounselor;
+  const tier = getCounselorTier(counselor);
+  const price = getUnlockPrice(tier);
+  
+  // Show loading state
+  unlockBtn.disabled = true;
+  unlockBtn.innerHTML = '<span class="spinner"></span> Processing...';
+  
+  try {
+    // Simulate payment processing (in real app, integrate with payment gateway)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Mark contact as unlocked for today
+    const today = new Date().toDateString();
+    const unlockKey = `${counselor.id}_${today}`;
+    unlockedContacts[unlockKey] = true;
+    localStorage.setItem('cc_unlocked_contacts', JSON.stringify(unlockedContacts));
+    
+    // Close modal
+    closeUnlockModal();
+    
+    // Refresh profile to show unlocked contact
+    displayCounselorProfile(counselor);
+    
+    ComfortCounsel.showToast('Contact information unlocked successfully!', 'success');
+    
+    // In a real app, you would call your payment API here:
+    // const response = await ComfortCounsel.apiRequest('/api/unlock-contact', {
+    //   method: 'POST',
+    //   body: JSON.stringify({
+    //     counselor_id: counselor.id,
+    //     tier: tier,
+    //     amount: price
+    //   })
+    // });
+    
+  } catch (error) {
+    console.error('Unlock payment error:', error);
+    ComfortCounsel.showToast('Payment failed. Please try again.', 'error');
+    
+    // Reset button
+    unlockBtn.disabled = false;
+    unlockBtn.innerHTML = 'Unlock Contact';
+  }
+}
+
+// ========================================
+// BOOKING MODAL - Task 3  
+// ========================================
 /**
  * Open booking modal with counselor details
  * Validates: Requirements 3.3, 3.4, 3.5, 3.6
@@ -792,6 +1004,68 @@ function bookSession(counselorId) {
 }
 </script>
 
+<!-- UNLOCK CONTACT MODAL -->
+<div class="modal-overlay" id="unlock-modal" style="display: none;">
+  <div class="modal-container">
+    <button class="modal-close" onclick="closeUnlockModal()">&times;</button>
+    
+    <div class="modal-header">
+      <h2 class="modal-title">🔓 Unlock Contact Information</h2>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Counselor Info -->
+      <div class="booking-counselor-info">
+        <img src="" alt="" class="booking-counselor-avatar" id="unlock-counselor-avatar" />
+        <div class="booking-counselor-details">
+          <h3 id="unlock-counselor-name">Counselor Name</h3>
+          <p><span id="unlock-counselor-tier">Premium</span> Tier Counselor</p>
+        </div>
+      </div>
+      
+      <!-- Unlock Details -->
+      <div class="booking-session-details">
+        <div class="booking-detail-row">
+          <span class="booking-detail-label">Access Duration</span>
+          <span class="booking-detail-value">24 hours</span>
+        </div>
+        <div class="booking-detail-row">
+          <span class="booking-detail-label">Unlock Fee</span>
+          <span class="booking-detail-value price-highlight" id="unlock-price-amount">GHS 12</span>
+        </div>
+        <div class="booking-detail-row">
+          <span class="booking-detail-label">Payment Method</span>
+          <span class="booking-detail-value">Mobile Money / Card</span>
+        </div>
+      </div>
+      
+      <!-- Features unlocked -->
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-primary);">What you'll get:</h4>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          <li style="padding: 0.5rem 0; color: var(--text-secondary); font-size: 0.9375rem;">✅ Phone number revealed</li>
+          <li style="padding: 0.5rem 0; color: var(--text-secondary); font-size: 0.9375rem;">✅ Direct contact capability</li>
+          <li style="padding: 0.5rem 0; color: var(--text-secondary); font-size: 0.9375rem;">✅ 24-hour access period</li>
+          <li style="padding: 0.5rem 0; color: var(--text-secondary); font-size: 0.9375rem;">✅ Priority booking status</li>
+        </ul>
+      </div>
+      
+      <!-- Payment Info -->
+      <div class="booking-payment-info">
+        <p>🔒 Secure payment processing • 24-hour access period</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">Contact information will be available until midnight today</p>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeUnlockModal()">Cancel</button>
+      <button class="btn btn-primary" id="confirm-unlock-btn" onclick="processUnlockPayment()">
+        Unlock Contact
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- BOOKING MODAL - Task 3.1 -->
 <div class="modal-overlay" id="booking-modal" style="display: none;">
   <div class="modal-container">
@@ -857,9 +1131,15 @@ function bookSession(counselorId) {
 <!-- Click outside modal to close -->
 <script>
 document.addEventListener('click', function(e) {
-  var modal = document.getElementById('booking-modal');
-  if (modal && e.target === modal) {
+  const bookingModal = document.getElementById('booking-modal');
+  const unlockModal = document.getElementById('unlock-modal');
+  
+  if (bookingModal && e.target === bookingModal) {
     closeBookingModal();
+  }
+  
+  if (unlockModal && e.target === unlockModal) {
+    closeUnlockModal();
   }
 });
 </script>
@@ -1073,6 +1353,59 @@ document.addEventListener('click', function(e) {
 .modal-footer .btn {
   flex: 1;
   max-width: 160px;
+}
+
+/* Privacy System Styles */
+.contact-locked {
+  color: var(--text-muted) !important;
+  font-style: italic;
+}
+
+.contact-locked::before {
+  content: '🔒 ';
+}
+
+.unlock-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.unlock-contact-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.unlock-contact-btn:active {
+  transform: translateY(0);
+}
+
+.unlock-contact-btn .price {
+  background: rgba(255,255,255,0.2);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8125rem;
+}
+
+.unlock-status {
+  font-size: 0.75rem;
+  color: var(--success);
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.unlock-status::before {
+  content: '✅ ';
 }
 
 /* Spinner */

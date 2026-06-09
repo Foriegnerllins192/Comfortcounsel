@@ -51,16 +51,15 @@
             id="hero-search"
             aria-label="Search for counselors"
             maxlength="100"
-            onkeypress="if(event.key==='Enter') redirectToFindCounselors(this.value.trim())"
           />
-          <button class="search-btn" id="home-search-btn" onclick="redirectToFindCounselors(document.getElementById('hero-search').value.trim())">Search</button>
+          <button class="search-btn" id="home-search-btn">Search</button>
         </div>
         <div class="search-suggestions">
           <span class="suggestion-label">Popular:</span>
-          <button class="suggestion-tag" onclick="redirectToFindCounselors('Relationship')">Relationship</button>
-          <button class="suggestion-tag" onclick="redirectToFindCounselors('Career')">Career</button>
-          <button class="suggestion-tag" onclick="redirectToFindCounselors('Mental Health')">Mental Health</button>
-          <button class="suggestion-tag" onclick="redirectToFindCounselors('Family')">Family</button>
+          <button class="suggestion-tag">Relationship</button>
+          <button class="suggestion-tag">Career</button>
+          <button class="suggestion-tag">Mental Health</button>
+          <button class="suggestion-tag">Family</button>
         </div>
       </div>
       
@@ -299,16 +298,84 @@
 <script>
 // Load counselors from database on page load
 document.addEventListener('DOMContentLoaded', async () => {
+  // Check for role-based redirection first
+  await handleRoleBasedRedirection();
+  
   // Wait for ComfortCounsel to be available
   if (typeof ComfortCounsel === 'undefined') {
     console.error('ComfortCounsel is not defined. Check if script.js loaded properly.');
     return;
   }
   
+  // Setup search functionality
+  setupHomeSearch();
+  
   await loadRecommendedCounselors();
   await loadTopRatedCounselors();
   await checkActiveSession();
 });
+
+// Handle automatic role-based redirection
+async function handleRoleBasedRedirection() {
+  try {
+    const token = localStorage.getItem('cc_token');
+    const userStr = localStorage.getItem('cc_user');
+    
+    if (token && userStr) {
+      const userData = JSON.parse(userStr);
+      
+      // Redirect based on user role
+      if (userData.role === 'admin') {
+        window.location.href = 'admin.html';
+        return;
+      } else if (userData.role === 'counselor') {
+        window.location.href = 'counselor-dashboard.html';
+        return;
+      }
+      // Regular users (role === 'user') stay on index.html
+    }
+  } catch (error) {
+    // If there's an error parsing user data, clear it
+    console.warn('Error parsing user data, clearing auth:', error);
+    localStorage.removeItem('cc_token');
+    localStorage.removeItem('cc_user');
+  }
+}
+
+// Setup home page search functionality
+function setupHomeSearch() {
+  const searchInput = document.getElementById('hero-search');
+  const searchBtn = document.getElementById('home-search-btn');
+  const suggestionTags = document.querySelectorAll('.suggestion-tag');
+  
+  // Search button click handler
+  if (searchBtn) {
+    searchBtn.addEventListener('click', () => {
+      const query = searchInput ? searchInput.value.trim() : '';
+      ComfortCounsel.redirectToFindCounselors(query);
+    });
+  }
+  
+  // Enter key press handler
+  if (searchInput) {
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const query = searchInput.value.trim();
+        ComfortCounsel.redirectToFindCounselors(query);
+      }
+    });
+  }
+  
+  // Suggestion tags click handlers
+  suggestionTags.forEach(tag => {
+    tag.addEventListener('click', () => {
+      const query = tag.textContent.trim();
+      ComfortCounsel.redirectToFindCounselors(query);
+    });
+  });
+}
+
+// Redirect function is defined in script.js and exported via ComfortCounsel namespace
 
 // Check for active session and show banner
 async function checkActiveSession() {

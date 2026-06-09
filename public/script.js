@@ -107,28 +107,8 @@ function setupSearch() {
   const isFindPage = !!document.getElementById('counselor-search');
   
   if (isHomePage) {
-    // HOME PAGE: search redirects to find-counselors with query
-    const heroSearch = document.getElementById('hero-search');
-    const searchBtn = document.querySelector('.search-btn');
-    
-    if (searchBtn) {
-      searchBtn.addEventListener('click', () => {
-        redirectToFindCounselors(heroSearch.value.trim());
-      });
-    }
-    
-    heroSearch.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        redirectToFindCounselors(heroSearch.value.trim());
-      }
-    });
-    
-    // Suggestion tags
-    document.querySelectorAll('.suggestion-tag').forEach(tag => {
-      tag.addEventListener('click', () => {
-        redirectToFindCounselors(tag.textContent.trim());
-      });
-    });
+    // HOME PAGE: search setup is handled by setupHomeSearch() in index.html
+    // Nothing to do here to avoid duplicate event listeners
     
   } else if (isFindPage) {
     // FIND-COUNSELORS PAGE: search filters in place (handled by setupFilters in that page's script)
@@ -346,6 +326,44 @@ function getCurrentUser() {
  */
 function isAuthenticated() {
   return !!getAuthToken();
+}
+
+/**
+ * Redirect user to appropriate dashboard based on their role
+ * This should be called on pages where role-based redirection is needed
+ * 
+ * @param {string} fallbackUrl - URL to redirect to if not authenticated (default: 'login.html')
+ * @returns {boolean} - True if user stays on current page, false if redirecting
+ */
+function handleRoleBasedRedirection(fallbackUrl = 'login.html') {
+  const token = getAuthToken();
+  const user = getCurrentUser();
+  
+  if (!token || !user) {
+    // Not authenticated, redirect to login
+    window.location.href = fallbackUrl;
+    return false;
+  }
+  
+  // Get current page
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  
+  // Define role-based dashboard mappings
+  const dashboardMappings = {
+    'admin': 'admin.html',
+    'counselor': 'counselor-dashboard.html',
+    'user': 'index.html'
+  };
+  
+  const targetPage = dashboardMappings[user.role] || dashboardMappings['user'];
+  
+  // If user is not on their intended dashboard page, redirect them
+  if (currentPage !== targetPage) {
+    window.location.href = targetPage;
+    return false;
+  }
+  
+  return true;
 }
 
 /**
@@ -591,6 +609,7 @@ window.ComfortCounsel = {
   requireAuth,
   requireRole,
   logout,
+  handleRoleBasedRedirection,
   
   // UI Helpers
   showToast,

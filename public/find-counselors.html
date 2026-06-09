@@ -67,6 +67,9 @@
       <aside class="filters-sidebar" id="filters-sidebar">
         <div class="filters-header">
           <h2 class="filters-title">Filters</h2>
+          <button class="filters-close" id="filters-close" aria-label="Close filters">
+            <span>&times;</span>
+          </button>
           <button class="filters-clear" id="clear-filters">Clear All</button>
         </div>
         
@@ -254,6 +257,9 @@
     </div>
   </div>
 </section>
+
+<!-- Filter Overlay for Mobile -->
+<div class="filters-overlay" id="filters-overlay"></div>
 
 <!-- FOOTER -->
 <footer class="footer">
@@ -475,7 +481,13 @@ function setupFilters() {
   
   // Apply filters button
   if (applyFiltersBtn) {
-    applyFiltersBtn.addEventListener('click', applyFilters);
+    applyFiltersBtn.addEventListener('click', () => {
+      applyFilters();
+      // Close mobile filters after applying
+      if (window.innerWidth <= 768) {
+        closeFilters();
+      }
+    });
   }
   
   // Clear filters button
@@ -498,6 +510,10 @@ function setupFilters() {
       currentPage = 1;
       displayCounselors(filteredCounselors);
       updateResultsCount(filteredCounselors.length);
+      // Close mobile filters after clearing
+      if (window.innerWidth <= 768) {
+        closeFilters();
+      }
     });
   }
   
@@ -699,11 +715,50 @@ if (resetFiltersBtn) {
 // Filters toggle for mobile
 const filtersToggle = document.getElementById('filters-toggle');
 const filtersSidebar = document.getElementById('filters-sidebar');
+const filtersOverlay = document.getElementById('filters-overlay');
+const filtersClose = document.getElementById('filters-close');
+
 if (filtersToggle && filtersSidebar) {
   filtersToggle.addEventListener('click', () => {
-    filtersSidebar.classList.toggle('open');
+    openFilters();
   });
 }
+
+if (filtersClose) {
+  filtersClose.addEventListener('click', () => {
+    closeFilters();
+  });
+}
+
+if (filtersOverlay) {
+  filtersOverlay.addEventListener('click', () => {
+    closeFilters();
+  });
+}
+
+// Functions to open and close filters
+function openFilters() {
+  if (filtersSidebar && filtersOverlay) {
+    filtersSidebar.classList.add('open');
+    filtersOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+  }
+}
+
+function closeFilters() {
+  if (filtersSidebar && filtersOverlay) {
+    filtersSidebar.classList.remove('open');
+    filtersOverlay.classList.remove('open');
+    document.body.style.overflow = ''; // Restore scrolling
+  }
+}
+
+// Close filters when pressing Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && filtersSidebar && filtersSidebar.classList.contains('open')) {
+    closeFilters();
+  }
+});
 
 // Setup pagination
 function setupPagination() {
